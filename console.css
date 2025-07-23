@@ -1,0 +1,282 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+#console-toggle {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  z-index: 1000;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+#mobile-console {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 300px;
+  min-height: 150px;
+  max-height: 80vh;
+  background: #1a1a1a;
+  color: #e1e1e1;
+  font-size: 14px;
+  display: none;
+  flex-direction: column;
+  z-index: 1000;
+  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4);
+  border-radius: 12px 12px 0 0;
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #333;
+}
+
+#console-resize-handle {
+  width: 100%;
+  height: 20px;
+  background: #2a2a2a;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#console-resize-handle::before {
+  content: '';
+  width: 40px;
+  height: 4px;
+  background: #666;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+#console-resize-handle:hover::before,
+#console-resize-handle:active::before {
+  background: #888;
+}
+
+#console-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: transparent;
+}
+
+#console-tabs {
+  display: flex;
+  background: #242424;
+  border-bottom: 1px solid #444;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#console-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+#console-tabs button {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 16px;
+  background: transparent;
+  color: #999;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+#console-tabs button:hover {
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+#console-tabs button.active {
+  background: #333;
+  color: #fff;
+}
+
+#console-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.console-panel {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #1a1a1a;
+}
+
+.console-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.console-panel::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.console-panel::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.hidden {
+  display: none;
+}
+
+.console-log {
+  color: #e1e1e1;
+  margin: 4px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.console-warn {
+  color: #ffa726;
+  background: rgba(255, 167, 38, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  border-left: 3px solid #ffa726;
+}
+
+.console-error {
+  color: #ef5350;
+  background: rgba(239, 83, 80, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  border-left: 3px solid #ef5350;
+}
+
+.console-info {
+  color: #42a5f5;
+  background: rgba(66, 165, 245, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  border-left: 3px solid #42a5f5;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+#repl-input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  background: #2a2a2a;
+  color: #e1e1e1;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+#repl-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+#repl-output {
+  min-height: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  #console-resize-handle {
+    height: 28px;
+    padding: 4px 0;
+  }
+
+  #console-resize-handle::before {
+    width: 60px;
+    height: 6px;
+  }
+
+  #console-resize-handle::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: transparent;
+  }
+
+  #console-tabs button {
+    padding: 14px 12px;
+    font-size: 12px;
+  }
+
+  .console-panel {
+    padding: 12px;
+  }
+}
+
+/* Animation for opening/closing */
+.console-opening {
+  animation: slideUp 0.3s ease-out;
+}
+
+.console-closing {
+  animation: slideDown 0.3s ease-in;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
