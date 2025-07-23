@@ -1,10 +1,14 @@
 // console.js
 (function () {
+  const currentScript = document.currentScript || [...document.scripts].pop();
+  const baseUrl = currentScript.src.split('/').slice(0, -1).join('/');
+
   const css = document.createElement('link');
   css.rel = 'stylesheet';
-  css.href = '/console.css';
+  css.href = `${baseUrl}/console.css`; // 👈 same dir as the script
   css.onerror = () => console.warn('⚠️ console.css failed to load');
   document.head.appendChild(css);
+
 
   document.addEventListener('DOMContentLoaded', () => {
     document.body.insertAdjacentHTML('beforeend', `
