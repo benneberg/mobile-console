@@ -92,6 +92,8 @@ To make the tool work universally (on mobile + third-party pages):
 - Netlify
 - Cloudflare Pages
 - jsDelivr or other CDN
+###Then update the bookmarklet URL to:
+- https://yourdomain.com/mobile-console/console.js
 
 Then use this enhanced bookmarklet to load both JS & CSS:
 
