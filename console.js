@@ -2,7 +2,7 @@
   const currentScript = document.currentScript || [...document.scripts].pop();
   const baseUrl = currentScript.src.split('/').slice(0, -1).join('/');
 
-  // Inject CSS from external + fallback inline
+  // Load external CSS (fallback inline on error)
   const css = document.createElement('link');
   css.rel = 'stylesheet';
   css.href = `${baseUrl}/console.css`;
@@ -49,7 +49,14 @@
   };
   document.head.appendChild(css);
 
-  document.addEventListener('DOMContentLoaded', () => {
+  // Ensure setup runs even if DOMContentLoaded already fired
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupConsole);
+  } else {
+    setupConsole();
+  }
+
+  function setupConsole() {
     document.body.insertAdjacentHTML('beforeend', `
       <div id="console-toggle">☰</div>
       <div id="mobile-console">
@@ -82,6 +89,7 @@
       dom: document.getElementById('panel-dom'),
       repl: document.getElementById('panel-repl'),
     };
+
     const toggleBtn = document.getElementById('console-toggle');
     const consoleContainer = document.getElementById('mobile-console');
     const tabs = document.querySelectorAll('#console-tabs button[data-tab]');
@@ -97,7 +105,6 @@
       panels[btn.dataset.tab].classList.remove('hidden');
     }));
 
-    // Theme toggle
     document.getElementById('toggle-theme').addEventListener('click', () => {
       document.body.classList.toggle('light-mode');
     });
@@ -188,5 +195,5 @@
     });
 
     console.log('✅ Mobile Console Loaded');
-  });
+  }
 })();
