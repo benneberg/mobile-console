@@ -94,11 +94,16 @@ window.consoleDumpStore = function (dbName, storeName) {
     const store = tx.objectStore(storeName);
     const all = store.getAll();
     all.onsuccess = () => {
-      console.log(`Contents of ${storeName}:`, all.result);
+      const json = JSON.stringify(all.result, null, 2);
+      logTo('storage', 'console-log', `<strong>Contents of ${storeName}:</strong><pre>${json}</pre>`);
     };
     tx.oncomplete = () => db.close();
   };
+  req.onerror = () => {
+    logTo('storage', 'console-error', `❌ Failed to open DB: ${dbName}`);
+  };
 };
+
 
     const panels = {
       console: document.getElementById('panel-console'),
