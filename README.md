@@ -1,29 +1,19 @@
 # 📱 Mobile Debug Console
 
-**A mobile-first, in-page developer console** you can inject into any web app. Inspect, debug, log, and script without any external tools — directly from your mobile or desktop browser.
+**A mobile-first, in-page developer console** you can inject into any web app. Inspect, debug, log, and script without external tools — directly from your mobile or desktop browser.
 
 ---
 
 ## 🧰 Features
 
-| Tab      | Description                                      |
-|----------|--------------------------------------------------|
-| 📦 Console  | Logs `console.log`, `warn`, `error`, `info`      |
-| 🌐 Network  | Monitors API calls via `fetch` and XHR           |
-| 🗄 Storage  | View `localStorage`, `sessionStorage`, and IndexedDB |
-| 🖥 System   | Screen size, user agent, platform info           |
-| 🌳 DOM      | Lightweight view of current DOM tree             |
-| 🧪 REPL     | Live JavaScript execution with output/errors      |
-
----
-
-## 💡 Planned Improvements
-
-- 🔁 Manual refresh buttons for Storage/DOM tabs
-- 🔍 Filter logs by type or keyword search
-- 🧵 Expandable/collapsible DOM tree nodes
-- 📦 Show request bodies and response content
-- ↕️ Resizable console height with draggable edge
+| Tab        | Description                                               |
+|------------|-----------------------------------------------------------|
+| 📦 Console | Logs `console.log`, `warn`, `error`, `info`               |
+| 🌐 Network | Logs `fetch` and XHR requests (URL, status, body preview) |
+| 🗄 Storage | View `localStorage`, `sessionStorage`, and IndexedDB      |
+| 🖥 System  | Screen size, user agent, platform                         |
+| 🌳 DOM     | Live, collapsible DOM tree with attribute inspection      |
+| 🧪 REPL    | Run JavaScript live and view output or errors             |
 
 ---
 
@@ -31,227 +21,147 @@
 
 ### 1. Serve Locally
 
-Make sure `console.js` is served from a reachable local or remote path.
-
 ```bash
 npx http-server .
 # or
 python -m http.server
-```
+Then open:
 
-Then visit your test page with debug mode enabled:
+bash
+Kopiera
+Redigera
+http://localhost:8080/your-page.html
+2. Inject via Bookmarklet (Instant)
+Use this to test on any page (even production/live sites):
 
-```
-http://localhost:8080/your-page.html?debug=true
-```
+javascript
+Kopiera
+Redigera
+javascript:(()=>{let l=document.createElement('link');l.rel='stylesheet';l.href='https://benneberg.github.io/mobile-console/console.css?t='+Date.now();document.head.appendChild(l);let s=document.createElement('script');s.src='https://benneberg.github.io/mobile-console/console.js?t='+Date.now();s.defer=true;document.head.appendChild(s);console.log('🧪 Injecting debug console…');})();
+Name: 📱 Mobile Console
 
----
+Paste into bookmark URL
 
-## 🔧 Integration Options
+Click on any webpage to load the console
 
-### ✅ 1. Inject via Bookmarklet (Instant)
+✅ Current Features (Implemented)
+✅ Console tab override (console.log, warn, error, info)
 
-Add the console to any page, including third-party sites, using a bookmarklet.
+✅ Network tab with fetch/XHR logging and response bodies
 
-**What It Does:**  
-Injects your hosted `console.js` and auto-initializes the mobile console.  
-Works in Chrome, Firefox, Safari, Edge, etc.
+✅ Storage tab with full localStorage, sessionStorage, and IndexedDB UI
 
-#### 🛠 Setup Steps
+✅ System info: screen size, user agent, platform
 
-1. Host your `console.js` and `console.css` (locally or on a CDN)
-2. Create this bookmarklet:
+✅ DOM tree viewer with collapsible nodes (<details>/<summary>)
 
-```javascript
-javascript:(()=>{let s=document.createElement('script');s.src='http://172.21.48.1:8080/console.js';s.defer=true;document.head.appendChild(s);console.log('🧪 Injecting debug console…');})();
-```
+✅ REPL for inline JavaScript evaluation
 
-3. Add it as a new browser bookmark:
-   - **Name:** 📱 Mobile Console
-   - **URL:** Paste the full code above
+✅ Global error & promise rejection capture
 
-4. Click it on any web page — boom 💥 your console appears!
+✅ Element picker with live highlight
 
----
+✅ Basic performance watcher (slow frames)
 
-### 🧩 2. Chrome Extension (Optional Upgrade)
-
-**Pros:**
-- Auto-injects on every page or specific domains
-- Works hands-free — no need to click a bookmark
-- Enables UI enhancements (buttons, shortcuts, themes)
-
----
-
-### 🌍 3. CDN-Based Universal Loader
-
-To make the tool work universally (on mobile + third-party pages):
-
-**Host files on fex:**
-- GitHub Pages
-- Netlify
-- Cloudflare Pages
-- jsDelivr or other CDN
-###Then update the bookmarklet URL to:
-- https://yourdomain.com/mobile-console/console.js
-
-Then use this enhanced bookmarklet to load both JS & CSS:
-
-```javascript
-javascript:(()=>{let l=document.createElement('link');l.rel='stylesheet';l.href='http://172.21.48.1:8080/console.css';document.head.appendChild(l);let s=document.createElement('script');s.src='http://172.21.48.1:8080/console.js';s.defer=true;document.head.appendChild(s);console.log('🧪 Injecting debug console…');})();
-```
-
----
-
-## ✅ Summary
-
-| Method        | Use Case                      | Setup Effort | Notes                        |
-|---------------|------------------------------|--------------|------------------------------|
-| ✅ Bookmarklet | Quick injection into any web page | ⭐ Easy       | Great for fast testing       |
-| 🧩 Extension   | Auto-run on target sites      | 🔧 Medium     | Full devtool companion       |
-| 🌍 CDN Loader  | Universal, mobile-friendly use | ⭐⭐ Easy      | Works even on 3rd-party pages|
-
----
-
-## 📌 Tip
-
-This tool is ideal for:
-- Debugging on real mobile devices
-- QA teams without desktop dev tools
-- Debugging production without modifying source
-
-In the REPL tab you can use:
-consoleDumpStore('myDatabase', 'myStore'); 
-
-In Storage tab you can:
-Pick a database from dropdown
-Pick an object store
-See JSON results directly below
-
----
-
-
- Implemented
- Console tab override (console.log, warn, etc.)
-
- Network tab (fetch/XHR logging)
-
- Storage tab (localStorage, sessionStorage, IndexedDB)
-
- System tab (screen, UA, platform)
-
- DOM tab (basic tree view)
-
- REPL tab (interactive JS eval)
-
-🔧 Planned & Useful Features (To Be Added)
-🔸 1. IndexedDB CRUD + Filtering UI
+🔧 Planned Features (Ideas & In Progress)
+🔸 1. IndexedDB CRUD + Filtering
 Status: ⚙️ In progress
+Features:
 
-Filter, add, delete, and sort store contents
+View & select DB and store
 
-UI: dropdowns + editable JSON
+Filter, add, delete, sort items
 
-Bonus: highlight changed keys live via polling or events
+Editable JSON
 
 🔸 2. DOM Inspector (Nested & Expandable)
-Status: ❓Idea
+Status: ✅ Basic implemented
+Plans:
 
-Like Chrome DevTools: collapsible tree with arrows
+Show attributes
 
-Show attributes & event listeners
+Live hover highlight
 
-Live-highlight on hover over tree
+Click to inspect/edit
 
-Could use <details>/<summary> tags for native collapsible tree
+🔸 3. JS Error Catcher
+Status: ✅ Done
 
-🔸 3. Event Logger
-Track and log user interactions:
+Captures uncaught exceptions and logs them
 
-Clicks, input changes, form submissions
+🔸 4. ConsoleDump Snapshot Tool
+Capture current app state:
 
-Logs to "Events" tab with timestamps
+Download all console/storage/network/system data as JSON
 
-Optional: Filter by tag, class, or event type
+Optional webhook for remote diagnostics
+
+🔸 5. Live Element Picker
+Tap to inspect and log node info
+
+Hover to highlight
+
+Inject test styles
+
+🔸 6. JS Performance Watcher
+Measure slow frames
+
+Track expensive operations
+
+Show FPS or layout thrashing alerts
+
+🔸 7. Request/Response Bodies (Enhanced)
+Full preview of fetch and XHR bodies
+
+Toggleable collapsed responses
+
+🔸 8. Custom Logs / Bookmarks
+Let user tag actions:
 
 js
 Kopiera
 Redigera
-document.addEventListener('click', e => {
-  logTo('events', 'console-log', `🖱️ Clicked: <${e.target.tagName}>`);
-});
-🔸 4. ConsoleDump Snapshot Tool
-Capture app state for debug:
+console.log("🚩 Step 2: Login clicked");
+🔸 9. Keyboard Shortcuts / Gestures
+Swipe to open console
 
-Dump all storage, cookies, user agent, system info into a big JSON blob
+Volume keys for toggle (PWA trick)
 
-Download as .json via Blob + a.download click
+🔸 10. Theme Toggle
+Dark/light theme
 
-Optional: auto-send to webhook for diagnostics
+Save in localStorage
 
-🔸 5. Live Element Picker / Highlighter
-Chrome-like hover & highlight:
+📌 Usage Tips
+Use REPL tab to run:
 
-On touch/hover, outline the DOM element
-
-Tap to log node info or inject custom styles
-
-Useful for debugging layout & styling
-
-🔸 6. JS Performance Watcher
-Measure:
-
-Time between events
-
-Track function timing (e.g., via performance.mark)
-
-Show slow calls or layout thrashing
-
-🔸 7. Custom Logs/Bookmarks
-Let user tag parts of the session:
-
-“Add Marker” button logs a timestamp and note
-
-Useful for test session bookmarks like:
-
-sql
+js
 Kopiera
 Redigera
-🚩 Step 3: User logs in
-🔸 8. Dark/Light Theme Toggle
-Status: 🎨 Cosmetic
+consoleDumpStore('myDatabase', 'myStore');
+Use Storage tab to:
 
-Let dev toggle dark/light theme
+Pick DB + object store
 
-Save preference in localStorage
+Auto-render values as JSON
 
-🔸 9. Clipboard Utility Tab
-Read/write from clipboard
+Edit, add, or delete records (planned)
 
-Copy values from other tabs
+Tool survives reloads via bookmarklet. Consider a Chrome extension for persistent auto-injection.
 
-Paste JSON and store it
+🌐 Hosting Options
+GitHub Pages (like https://benneberg.github.io/mobile-console/)
 
-🔸 10. Network Inspector: Request/Response Bodies
-Right now you only log fetch/XHR summary. You could:
+Netlify / Vercel / Cloudflare Pages
 
-Read response .text() or .json() (clone first)
+jsDelivr / CDN
 
-Show in collapsible sections in the network tab
+Update the bookmarklet URL accordingly.
 
-🔸 11. JS Error Catcher
-Global window.onerror and window.onunhandledrejection
+🔚 Summary
+Method	Best For	Setup Effort	Notes
+✅ Bookmarklet	Testing any site on the fly	⭐ Easy	Paste once, test anywhere
+🧩 Extension	Auto-load on selected domains	🔧 Medium	Optional next step
+🌍 CDN Loader	Sharing/debugging on mobile	⭐⭐ Easy	Just send a URL
 
-Logs stack traces to Console tab
-
-Group similar errors (optional)
-
-🔸 12. Mobile-Friendly Keyboard Shortcuts
-Swipe gestures or long-press toggles?
-
-Volume button console open/close (PWA hack)
-
-🔸 13. FPS or Animation Monitor
-Small FPS overlay for perf debugging
-
-Optionally attach requestAnimationFrame watcher
+Made with ❤️ by @benneberg
