@@ -9,6 +9,18 @@
   css.onerror = () => console.warn('⚠️ console.css failed to load');
   document.head.appendChild(css);
 
+const style = document.createElement('style');
+style.textContent = `
+  #console-toggle { position: fixed; top: 10px; right: 10px; background: black; color: white; padding: 10px; font-size: 20px; border-radius: 5px; cursor: pointer; z-index: 10000; }
+  #mobile-console { position: fixed; bottom: 0; left: 0; width: 100%; height: 40%; background: #1e1e1e; color: white; font-family: monospace; overflow-y: auto; display: flex; flex-direction: column; z-index: 9999; }
+  .console-panel.hidden { display: none; }
+  .console-panel { flex: 1; overflow: auto; padding: 10px; }
+  #console-tabs { display: flex; border-bottom: 1px solid #444; }
+  #console-tabs button { flex: 1; background: none; border: none; color: white; padding: 8px; cursor: pointer; }
+  #console-tabs .active { background: #333; }
+  #repl-input { width: 100%; padding: 8px; background: black; color: white; border: none; font-family: monospace; }
+`;
+document.head.appendChild(style);
 
   document.addEventListener('DOMContentLoaded', () => {
     document.body.insertAdjacentHTML('beforeend', `
