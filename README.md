@@ -129,3 +129,129 @@ Pick an object store
 See JSON results directly below
 
 ---
+
+
+ Implemented
+ Console tab override (console.log, warn, etc.)
+
+ Network tab (fetch/XHR logging)
+
+ Storage tab (localStorage, sessionStorage, IndexedDB)
+
+ System tab (screen, UA, platform)
+
+ DOM tab (basic tree view)
+
+ REPL tab (interactive JS eval)
+
+🔧 Planned & Useful Features (To Be Added)
+🔸 1. IndexedDB CRUD + Filtering UI
+Status: ⚙️ In progress
+
+Filter, add, delete, and sort store contents
+
+UI: dropdowns + editable JSON
+
+Bonus: highlight changed keys live via polling or events
+
+🔸 2. DOM Inspector (Nested & Expandable)
+Status: ❓Idea
+
+Like Chrome DevTools: collapsible tree with arrows
+
+Show attributes & event listeners
+
+Live-highlight on hover over tree
+
+Could use <details>/<summary> tags for native collapsible tree
+
+🔸 3. Event Logger
+Track and log user interactions:
+
+Clicks, input changes, form submissions
+
+Logs to "Events" tab with timestamps
+
+Optional: Filter by tag, class, or event type
+
+js
+Kopiera
+Redigera
+document.addEventListener('click', e => {
+  logTo('events', 'console-log', `🖱️ Clicked: <${e.target.tagName}>`);
+});
+🔸 4. ConsoleDump Snapshot Tool
+Capture app state for debug:
+
+Dump all storage, cookies, user agent, system info into a big JSON blob
+
+Download as .json via Blob + a.download click
+
+Optional: auto-send to webhook for diagnostics
+
+🔸 5. Live Element Picker / Highlighter
+Chrome-like hover & highlight:
+
+On touch/hover, outline the DOM element
+
+Tap to log node info or inject custom styles
+
+Useful for debugging layout & styling
+
+🔸 6. JS Performance Watcher
+Measure:
+
+Time between events
+
+Track function timing (e.g., via performance.mark)
+
+Show slow calls or layout thrashing
+
+🔸 7. Custom Logs/Bookmarks
+Let user tag parts of the session:
+
+“Add Marker” button logs a timestamp and note
+
+Useful for test session bookmarks like:
+
+sql
+Kopiera
+Redigera
+🚩 Step 3: User logs in
+🔸 8. Dark/Light Theme Toggle
+Status: 🎨 Cosmetic
+
+Let dev toggle dark/light theme
+
+Save preference in localStorage
+
+🔸 9. Clipboard Utility Tab
+Read/write from clipboard
+
+Copy values from other tabs
+
+Paste JSON and store it
+
+🔸 10. Network Inspector: Request/Response Bodies
+Right now you only log fetch/XHR summary. You could:
+
+Read response .text() or .json() (clone first)
+
+Show in collapsible sections in the network tab
+
+🔸 11. JS Error Catcher
+Global window.onerror and window.onunhandledrejection
+
+Logs stack traces to Console tab
+
+Group similar errors (optional)
+
+🔸 12. Mobile-Friendly Keyboard Shortcuts
+Swipe gestures or long-press toggles?
+
+Volume button console open/close (PWA hack)
+
+🔸 13. FPS or Animation Monitor
+Small FPS overlay for perf debugging
+
+Optionally attach requestAnimationFrame watcher
