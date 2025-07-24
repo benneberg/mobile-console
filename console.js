@@ -174,23 +174,53 @@ if (document.getElementById('mobile-console')) {
     logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
     logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
 
-function buildTree(el, indent = 0) {
-  const tag = el.tagName.toLowerCase();
-  const id = el.id ? ` id="${el.id}"` : '';
-  const cls = el.className ? ` class="${el.className}"` : '';
-  const line = `${' '.repeat(indent)}&lt;${tag}${id}${cls}&gt;`;
+function buildTree(el) {
+  const container = document.createElement('div');
+  container.className = 'dom-tree';
 
-  logTo('dom', 'console-log', `<pre>${line}</pre>`);
+  function createNodeElement(el) {
+    const tag = el.tagName.toLowerCase();
+    const id = el.id ? ` id="${el.id}"` : '';
+    const cls = el.className ? ` class="${el.className}"` : '';
+    const children = [...el.children];
 
-  // Recurse into children
-  el.childNodes.forEach(child => {
-    if (child.nodeType === 1) { // ELEMENT_NODE
-      buildTree(child, indent + 2);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dom-node';
+
+    const label = document.createElement('div');
+    label.className = 'dom-node-label';
+    label.innerHTML = `<span class="dom-arrow">${children.length ? '▶' : ''}</span> &lt;${tag}${id}${cls}&gt;`;
+
+    wrapper.appendChild(label);
+
+    if (children.length) {
+      const childContainer = document.createElement('div');
+      childContainer.className = 'dom-children';
+      childContainer.style.display = 'none';
+
+      children.forEach(child => {
+        const childNode = createNodeElement(child);
+        childContainer.appendChild(childNode);
+      });
+
+      wrapper.appendChild(childContainer);
+
+      label.addEventListener('click', () => {
+        const arrow = label.querySelector('.dom-arrow');
+        const isOpen = childContainer.style.display === 'block';
+        childContainer.style.display = isOpen ? 'none' : 'block';
+        arrow.textContent = isOpen ? '▶' : '▼';
+      });
     }
-  });
-}
-    panels.dom.innerHTML = '';
 
+    return wrapper;
+  }
+
+  const rootNode = createNodeElement(document.body);
+  container.appendChild(rootNode);
+  panels.dom.innerHTML = '';
+  panels.dom.appendChild(container);
+}
     buildTree(document.body);
 
     const replInput = document.getElementById('repl-input');
