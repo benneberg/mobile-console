@@ -98,7 +98,38 @@ const panels = {};
   document.querySelectorAll('[data-panel]').forEach(el => {
     panels[el.dataset.panel] = el;
   });
-  console.log('📦 Panels loaded:', Object.keys(panels));
+    
+  function logTo(panel, type, content) {
+    const el = document.createElement('div');
+    el.className = type;
+    el.innerHTML = content;
+    panels[panel].appendChild(el);
+    panels[panel].scrollTop = panels[panel].scrollHeight;
+  }
+    
+
+ 
+    const consoleContainer = document.getElementById('mobile-console');
+    const tabs = document.querySelectorAll('#console-tabs button[data-tab]');
+
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(panels).forEach(p => p.classList.add('hidden'));
+      panels[btn.dataset.tab].classList.remove('hidden');
+      if (btn.dataset.tab === 'storage') {
+        loadIndexedDBExplorer();
+      }
+    }));
+const toggleBtn = document.getElementById('console-toggle');
+    
+           toggleBtn.addEventListener('click', () => {
+      consoleContainer.style.display = consoleContainer.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    document.getElementById('toggle-theme').addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+    });
     
     // Helper for REPL use 
     window.consoleDumpStore = function (dbName, storeName) {
@@ -120,29 +151,7 @@ logTo('storage', 'console-log', html);
       };
     };
 
-
-
-    const toggleBtn = document.getElementById('console-toggle');
-    const consoleContainer = document.getElementById('mobile-console');
-    const tabs = document.querySelectorAll('#console-tabs button[data-tab]');
-
-    toggleBtn.addEventListener('click', () => {
-      consoleContainer.style.display = consoleContainer.style.display === 'flex' ? 'none' : 'flex';
-    });
-
-    tabs.forEach(btn => btn.addEventListener('click', () => {
-      tabs.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      Object.values(panels).forEach(p => p.classList.add('hidden'));
-      panels[btn.dataset.tab].classList.remove('hidden');
-      if (btn.dataset.tab === 'storage') {
-        loadIndexedDBExplorer();
-      }
-    }));
-
-    document.getElementById('toggle-theme').addEventListener('click', () => {
-      document.body.classList.toggle('light-mode');
-    });
+ 
     // Filter / Add / Delete / Sort to IndexedDB Viewer
     document.getElementById('idb-filter').addEventListener('input', () => {
       const filter = document.getElementById('idb-filter').value.toLowerCase();
@@ -350,13 +359,7 @@ document.getElementById('idb-del').addEventListener('click', () => {
     console.log('✅ Mobile Console Loaded');
   }
 
-  function logTo(panel, type, content) {
-    const el = document.createElement('div');
-    el.className = type;
-    el.innerHTML = content;
-    panels[panel].appendChild(el);
-    panels[panel].scrollTop = panels[panel].scrollHeight;
-  }
+
 
   ['log', 'warn', 'error', 'info'].forEach(level => {
     const orig = console[level];
