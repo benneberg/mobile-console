@@ -63,12 +63,6 @@
       return;
     }
     
-// Dynamically map all panels by data attribute
-const panels = {};
-document.querySelectorAll('[data-panel]').forEach(el => {
-  const name = el.dataset.panel;
-  panels[name] = el;
-});
     document.body.insertAdjacentHTML('beforeend', `
       <div id="console-toggle">☰</div>
       <div id="mobile-console">
@@ -99,6 +93,12 @@ document.querySelectorAll('[data-panel]').forEach(el => {
         </div>
       </div>
     `);
+
+const panels = {};
+  document.querySelectorAll('[data-panel]').forEach(el => {
+    panels[el.dataset.panel] = el;
+  });
+  console.log('📦 Panels loaded:', Object.keys(panels));
     
     // Helper for REPL use 
     window.consoleDumpStore = function (dbName, storeName) {
