@@ -155,53 +155,65 @@ logTo('storage', 'console-log', html);
       resultBox.innerHTML = `<pre>${JSON.stringify(filtered, null, 2)}</pre>`;
     });
 
-    document.getElementById('idb-add').addEventListener('click', () => {
-      const dbName = dbSelect.value;
-      const storeName = storeSelect.value;
-      if (!dbName || !storeName) return;
-      const key = prompt('Enter key (leave blank for auto):');
-      const value = prompt('Enter JSON value:');
-      try {
-        const parsed = JSON.parse(value);
-        const req = indexedDB.open(dbName);
-        req.onsuccess = () => {
-          const db = req.result;
-          const tx = db.transaction(storeName, 'readwrite');
-          const store = tx.objectStore(storeName);
-          if (key) {
-            store.put(parsed, key);
-          } else {
-            store.add(parsed);
-          }
-          tx.oncomplete = () => {
-            db.close();
-            storeSelect.dispatchEvent(new Event('change')); // reload view
-          };
-        };
-      } catch (e) {
-        alert('❌ Invalid JSON');
-      }
-    });
+   document.getElementById('idb-add').addEventListener('click', () => {
+  const dbName = dbSelect.value;
+  const storeName = storeSelect.value;
+  if (!dbName || !storeName) return;
 
-    document.getElementById('idb-del').addEventListener('click', () => {
-      const dbName = dbSelect.value;
-      const storeName = storeSelect.value;
-      const key = prompt('Enter key to delete:');
-      if (!key) return;
-      const req = indexedDB.open(dbName);
-      req.onsuccess = () => {
-        const db = req.result;
-        const tx = db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        store.delete(key);
-        tx.oncomplete = () => {
-          db.close();
-          storeSelect.dispatchEvent(new Event('change')); // reload
-        };
-      };
-    });
+  const key = prompt('Enter key (leave blank for auto):');
+  const value = prompt('Enter JSON value:');
+  if (!value) return alert('❌ No value entered');
 
-    all.onsuccess = () => {
+  let parsed;
+  try {
+    parsed = JSON.parse(value);
+  } catch (e) {
+    return alert('❌ Invalid JSON format');
+  }
+
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    if (key) {
+      store.put(parsed, key);
+    } else {
+      store.add(parsed);
+    }
+    tx.oncomplete = () => {
+      db.close();
+      storeSelect.dispatchEvent(new Event('change'));
+    };
+  };
+  req.onerror = () => alert('❌ Failed to open database');
+});
+
+
+   document.getElementById('idb-del').addEventListener('click', () => {
+  const dbName = dbSelect.value;
+  const storeName = storeSelect.value;
+  const key = prompt('Enter key to delete:');
+  if (!key) return;
+
+  if (!confirm(`Are you sure you want to delete key: ${key}?`)) return;
+
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    store.delete(key);
+    tx.oncomplete = () => {
+      db.close();
+      storeSelect.dispatchEvent(new Event('change'));
+    };
+  };
+  req.onerror = () => alert('❌ Failed to open database');
+});
+
+const all = store.getAll();
+all.onsuccess = () => {
   resultBox.innerHTML = sortAndRenderStoreData(all.result, `Contents of ${storeName}`, resultBox);
 };
 
