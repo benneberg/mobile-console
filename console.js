@@ -94,6 +94,12 @@
     `);
 
 
+// Dynamically map all panels by data attribute
+const panels = {};
+document.querySelectorAll('[data-panel]').forEach(el => {
+  const name = el.dataset.panel;
+  panels[name] = el;
+});
 
     
     // Helper for REPL use 
