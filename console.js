@@ -76,7 +76,14 @@ if (document.getElementById('mobile-console')) {
         </div>
         <div id="panel-console" class="console-panel"></div>
         <div id="panel-network" class="console-panel hidden"></div>
-        <div id="panel-storage" class="console-panel hidden"></div>
+        <div id="panel-storage" class="console-panel hidden"><div style="margin-top: 0.5em;">
+  <input id="idb-filter" placeholder="🔍 filter keys or values…" style="width: 100%;" />
+</div>
+<div style="margin-top: 0.5em;">
+  <button id="idb-add">➕ Add Key</button>
+  <button id="idb-del">🗑️ Delete Key</button>
+</div>
+</div>
         <div id="panel-info" class="console-panel hidden"></div>
         <div id="panel-dom" class="console-panel hidden"></div>
         <div id="panel-repl" class="console-panel hidden">
