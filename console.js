@@ -94,55 +94,7 @@
     `);
 
 
- const panels = {
-      console: document.getElementById('panel-console'),
-      network: document.getElementById('panel-network'),
-      storage: document.getElementById('panel-storage'),
-      info: document.getElementById('panel-info'),
-      dom: document.getElementById('panel-dom'),
-      repl: document.getElementById('panel-repl'),
-    };
 
-  function refreshStorage() {
-    panels.storage.innerHTML = `
-  <div style="margin-bottom: 0.5em;">
-    <label>📦 DB:
-      <select id="idb-dbs"><option>Loading…</option></select>
-    </label>
-    <label>📁 Store:
-      <select id="idb-stores" disabled><option>Select DB first</option></select>
-    </label>
-  </div>
-  <div id="idb-results"></div>
-`;
-
-    ['localStorage', 'sessionStorage'].forEach(k => {
-      const pre = JSON.stringify(Object.fromEntries(Object.entries(window[k])), null, 2);
-      logTo('storage', 'console-log', `<strong>${k}:</strong><pre>${pre}</pre>`);
-    });
-    if (indexedDB.databases) {
-      indexedDB.databases().then(dbs => {
-        dbs.forEach(db => {
-          logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name || '(unnamed)'}`);
-
-          const req = indexedDB.open(db.name);
-          req.onsuccess = () => {
-            const dbInstance = req.result;
-            const stores = dbInstance.objectStoreNames;
-            for (let i = 0; i < stores.length; i++) {
-              logTo('storage', 'console-log', `&nbsp;&nbsp;↳ Store: ${stores[i]}`);
-            }
-            dbInstance.close();
-          };
-          req.onerror = () => {
-            logTo('storage', 'console-error', `❌ Error opening DB ${db.name}`);
-          };
-        });
-      });
-    }
-  }
-  refreshStorage();
-  window.addEventListener('storage', refreshStorage);
     
     // Helper for REPL use 
     window.consoleDumpStore = function (dbName, storeName) {
@@ -215,6 +167,56 @@ logTo('storage', 'console-log', html);
     return alert('❌ Invalid JSON format');
   }
 
+ const panels = {
+      console: document.getElementById('panel-console'),
+      network: document.getElementById('panel-network'),
+      storage: document.getElementById('panel-storage'),
+      info: document.getElementById('panel-info'),
+      dom: document.getElementById('panel-dom'),
+      repl: document.getElementById('panel-repl'),
+    };
+
+  function refreshStorage() {
+    panels.storage.innerHTML = `
+  <div style="margin-bottom: 0.5em;">
+    <label>📦 DB:
+      <select id="idb-dbs"><option>Loading…</option></select>
+    </label>
+    <label>📁 Store:
+      <select id="idb-stores" disabled><option>Select DB first</option></select>
+    </label>
+  </div>
+  <div id="idb-results"></div>
+`;
+
+    ['localStorage', 'sessionStorage'].forEach(k => {
+      const pre = JSON.stringify(Object.fromEntries(Object.entries(window[k])), null, 2);
+      logTo('storage', 'console-log', `<strong>${k}:</strong><pre>${pre}</pre>`);
+    });
+    if (indexedDB.databases) {
+      indexedDB.databases().then(dbs => {
+        dbs.forEach(db => {
+          logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name || '(unnamed)'}`);
+
+          const req = indexedDB.open(db.name);
+          req.onsuccess = () => {
+            const dbInstance = req.result;
+            const stores = dbInstance.objectStoreNames;
+            for (let i = 0; i < stores.length; i++) {
+              logTo('storage', 'console-log', `&nbsp;&nbsp;↳ Store: ${stores[i]}`);
+            }
+            dbInstance.close();
+          };
+          req.onerror = () => {
+            logTo('storage', 'console-error', `❌ Error opening DB ${db.name}`);
+          };
+        });
+      });
+    }
+  }
+  refreshStorage();
+  window.addEventListener('storage', refreshStorage);
+     
   const req = indexedDB.open(dbName);
   req.onsuccess = () => {
     const db = req.result;
