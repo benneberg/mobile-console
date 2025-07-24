@@ -57,6 +57,11 @@
   }
 
   function setupConsole() {
+// Prevent Duplicate Panels
+if (document.getElementById('mobile-console')) {
+  console.warn('🚫 Console already injected.');
+  return;
+}
     document.body.insertAdjacentHTML('beforeend', `
       <div id="console-toggle">☰</div>
       <div id="mobile-console">
