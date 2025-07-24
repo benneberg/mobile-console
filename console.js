@@ -205,7 +205,82 @@ document.getElementById('idb-filter').addEventListener('input', () => {
   resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 };
 
-    
+     // --- [1] JS Error Catcher ---
+    window.onerror = (msg, url, line, col, err) =>
+      logTo('console', 'console-error', `<strong>JS Error:</strong> ${msg}<br><pre>${err?.stack}</pre>`);
+    window.onunhandledrejection = e =>
+      logTo('console', 'console-error', `<strong>Unhandled Promise:</strong> <pre>${e.reason?.stack || e.reason}</pre>`);
+
+    // --- [2] Enhanced Network Inspector ---
+    const origFetch = window.fetch?.bind(window);
+    if (origFetch) {
+      window.fetch = async (...args) => {
+        const [resource, config] = args;
+        logTo('network', 'console-log', `➡️ Fetch ${resource}`);
+        const res = await origFetch(...args);
+        const clone = res.clone();
+        let body = '';
+        try { body = await clone.text(); } catch {}
+        logTo('network', 'console-log',
+          `✅ ${res.url} [${res.status}]<pre>${body}</pre>`);
+        return res;
+      };
+    }
+    const origXHR = window.XMLHttpRequest;
+    window.XMLHttpRequest = function () {
+      const xhr = new origXHR();
+      xhr.addEventListener('load', () => {
+        const body = xhr.responseText.substring(0, 200);
+        logTo('network', 'console-log',
+          `✅ XHR ${xhr.responseURL} [${xhr.status}]<pre>${body}${xhr.responseText.length > 200 ? '…' : ''}</pre>`);
+      });
+      return xhr;
+    };
+
+    // --- [3] Performance Watcher ---
+    let lastFrame = performance.now();
+    function perfLoop() {
+      const now = performance.now();
+      const delta = now - lastFrame;
+      if (delta > 100) {
+        logTo('info', 'console-warn', `⚠️ Long frame: ${delta.toFixed(1)}ms`);
+      }
+      lastFrame = now;
+      requestAnimationFrame(perfLoop);
+    }
+    perfLoop();
+
+    // --- [4] Element Picker ---
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#mobile-console')) {
+        document.querySelectorAll('.highlight-picked').forEach(el =>
+          el.classList.remove('highlight-picked'));
+        const el = e.target;
+        el.classList.add('highlight-picked');
+        logTo('dom', 'console-log', `<pre>${el.outerHTML.split('\n')[0]}…</pre>`);
+      }
+    }, true);
+
+    // --- [5] DOM Inspector using <details> tree ---
+    function buildDomTree(el) {
+      const d = document.createElement('details');
+      const s = document.createElement('summary');
+      const id = el.id ? `#${el.id}` : '';
+      const cls = el.className ? '.' + el.className.split(' ').join('.') : '';
+      s.textContent = `<${el.tagName.toLowerCase()}${id}${cls}>`;
+      d.appendChild(s);
+      Array.from(el.children).forEach(child => {
+        d.appendChild(buildDomTree(child));
+      });
+      return d;
+    }
+    const domPanel = document.getElementById('panel-dom');
+    domPanel.innerHTML = '';
+    domPanel.appendChild(buildDomTree(document.body));
+
+    console.log('✅ Mobile Console Loaded');
+  }
+  
     function logTo(panel, type, content) {
       const el = document.createElement('div');
       el.className = type;
