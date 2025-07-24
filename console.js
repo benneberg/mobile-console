@@ -174,14 +174,21 @@ if (document.getElementById('mobile-console')) {
     logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
     logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
 
-    function buildTree(el, indent = 0) {
-      let out = ' '.repeat(indent) + `<${el.tagName.toLowerCase()}`;
-      if (el.id) out += ` id="${el.id}"`;
-      if (el.className) out += ` class="${el.className}"`;
-      out += '>';
-      logTo('dom', 'console-log', out);
-      el.childNodes.forEach(c => c.nodeType === 1 && buildTree(c, indent + 2));
+function buildTree(el, indent = 0) {
+  const tag = el.tagName.toLowerCase();
+  const id = el.id ? ` id="${el.id}"` : '';
+  const cls = el.className ? ` class="${el.className}"` : '';
+  const line = `${' '.repeat(indent)}&lt;${tag}${id}${cls}&gt;`;
+
+  logTo('dom', 'console-log', `<pre>${line}</pre>`);
+
+  // Recurse into children
+  el.childNodes.forEach(child => {
+    if (child.nodeType === 1) { // ELEMENT_NODE
+      buildTree(child, indent + 2);
     }
+  });
+}
     buildTree(document.body);
 
     const replInput = document.getElementById('repl-input');
