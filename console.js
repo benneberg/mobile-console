@@ -85,6 +85,20 @@ if (document.getElementById('mobile-console')) {
         </div>
       </div>
     `);
+// Helper for REPL use 
+window.consoleDumpStore = function (dbName, storeName) {
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const all = store.getAll();
+    all.onsuccess = () => {
+      console.log(`Contents of ${storeName}:`, all.result);
+    };
+    tx.oncomplete = () => db.close();
+  };
+};
 
     const panels = {
       console: document.getElementById('panel-console'),
