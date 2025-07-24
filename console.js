@@ -189,6 +189,8 @@ function buildTree(el, indent = 0) {
     }
   });
 }
+    panels.dom.innerHTML = '';
+
     buildTree(document.body);
 
     const replInput = document.getElementById('repl-input');
