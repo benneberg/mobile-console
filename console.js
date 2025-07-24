@@ -127,6 +127,9 @@ window.consoleDumpStore = function (dbName, storeName) {
       btn.classList.add('active');
       Object.values(panels).forEach(p => p.classList.add('hidden'));
       panels[btn.dataset.tab].classList.remove('hidden');
+      if (btn.dataset.tab === 'storage') {
+    loadIndexedDBExplorer();
+  }
     }));
 
     document.getElementById('toggle-theme').addEventListener('click', () => {
