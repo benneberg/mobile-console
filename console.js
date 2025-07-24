@@ -161,11 +161,26 @@ if (document.getElementById('mobile-console')) {
         const pre = JSON.stringify(Object.fromEntries(Object.entries(window[k])), null, 2);
         logTo('storage', 'console-log', `<strong>${k}:</strong><pre>${pre}</pre>`);
       });
-      if (window.indexedDB?.databases) {
-        window.indexedDB.databases().then(dbs =>
-          dbs.forEach(db => logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name}`))
-        );
-      }
+if (indexedDB.databases) {
+  indexedDB.databases().then(dbs => {
+    dbs.forEach(db => {
+      logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name || '(unnamed)'}`);
+
+      const req = indexedDB.open(db.name);
+      req.onsuccess = () => {
+        const dbInstance = req.result;
+        const stores = dbInstance.objectStoreNames;
+        for (let i = 0; i < stores.length; i++) {
+          logTo('storage', 'console-log', `&nbsp;&nbsp;↳ Store: ${stores[i]}`);
+        }
+        dbInstance.close();
+      };
+      req.onerror = () => {
+        logTo('storage', 'console-error', `❌ Error opening DB ${db.name}`);
+      };
+    });
+  });
+}
     }
     refreshStorage();
     window.addEventListener('storage', refreshStorage);
