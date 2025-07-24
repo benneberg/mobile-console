@@ -21,6 +21,7 @@
         border-radius: 5px;
         cursor: pointer;
         z-index: 10000;
+      }
       #mobile-console {
         position: fixed;
         bottom: 0;
@@ -33,6 +34,7 @@
         display: none;
         flex-direction: column;
         z-index: 9999;
+      }
       .console-panel.hidden { display: none; }
       .console-panel { flex: 1; overflow: auto; padding: 10px; }
       #console-tabs { display: flex; border-bottom: 1px solid #444; }
@@ -74,14 +76,7 @@ if (document.getElementById('mobile-console')) {
         </div>
         <div id="panel-console" class="console-panel"></div>
         <div id="panel-network" class="console-panel hidden"></div>
-        <div id="panel-storage" class="console-panel hidden"><div style="margin-top: 0.5em;">
-  <input id="idb-filter" placeholder="🔍 filter keys or values…" style="width: 100%;" />
-</div>
-<div style="margin-top: 0.5em;">
-  <button id="idb-add">➕ Add Key</button>
-  <button id="idb-del">🗑️ Delete Key</button>
-</div>
-</div>
+        <div id="panel-storage" class="console-panel hidden"></div>
         <div id="panel-info" class="console-panel hidden"></div>
         <div id="panel-dom" class="console-panel hidden"></div>
         <div id="panel-repl" class="console-panel hidden">
@@ -140,145 +135,6 @@ window.consoleDumpStore = function (dbName, storeName) {
     document.getElementById('toggle-theme').addEventListener('click', () => {
       document.body.classList.toggle('light-mode');
     });
-// Filter / Add / Delete / Sort to IndexedDB Viewer
-document.getElementById('idb-filter').addEventListener('input', () => {
-  const filter = document.getElementById('idb-filter').value.toLowerCase();
-  const pre = resultBox.querySelector('pre');
-  if (!pre) return;
-  const original = JSON.parse(pre.textContent || '[]');
-  const filtered = original.filter(entry =>
-    JSON.stringify(entry).toLowerCase().includes(filter)
-  );
-  resultBox.innerHTML = `<pre>${JSON.stringify(filtered, null, 2)}</pre>`;
-});
-
-    document.getElementById('idb-add').addEventListener('click', () => {
-  const dbName = dbSelect.value;
-  const storeName = storeSelect.value;
-  if (!dbName || !storeName) return;
-  const key = prompt('Enter key (leave blank for auto):');
-  const value = prompt('Enter JSON value:');
-  try {
-    const parsed = JSON.parse(value);
-    const req = indexedDB.open(dbName);
-    req.onsuccess = () => {
-      const db = req.result;
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      if (key) {
-        store.put(parsed, key);
-      } else {
-        store.add(parsed);
-      }
-      tx.oncomplete = () => {
-        db.close();
-        storeSelect.dispatchEvent(new Event('change')); // reload view
-      };
-    };
-  } catch (e) {
-    alert('❌ Invalid JSON');
-  }
-});
-
-    document.getElementById('idb-del').addEventListener('click', () => {
-  const dbName = dbSelect.value;
-  const storeName = storeSelect.value;
-  const key = prompt('Enter key to delete:');
-  if (!key) return;
-  const req = indexedDB.open(dbName);
-  req.onsuccess = () => {
-    const db = req.result;
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    store.delete(key);
-    tx.oncomplete = () => {
-      db.close();
-      storeSelect.dispatchEvent(new Event('change')); // reload
-    };
-  };
-});
-
-    all.onsuccess = () => {
-  const data = all.result.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-  resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-};
-
-     // --- [1] JS Error Catcher ---
-    window.onerror = (msg, url, line, col, err) =>
-      logTo('console', 'console-error', `<strong>JS Error:</strong> ${msg}<br><pre>${err?.stack}</pre>`);
-    window.onunhandledrejection = e =>
-      logTo('console', 'console-error', `<strong>Unhandled Promise:</strong> <pre>${e.reason?.stack || e.reason}</pre>`);
-
-    // --- [2] Enhanced Network Inspector ---
-    const origFetch = window.fetch?.bind(window);
-    if (origFetch) {
-      window.fetch = async (...args) => {
-        const [resource, config] = args;
-        logTo('network', 'console-log', `➡️ Fetch ${resource}`);
-        const res = await origFetch(...args);
-        const clone = res.clone();
-        let body = '';
-        try { body = await clone.text(); } catch {}
-        logTo('network', 'console-log',
-          `✅ ${res.url} [${res.status}]<pre>${body}</pre>`);
-        return res;
-      };
-    }
-    const origXHR = window.XMLHttpRequest;
-    window.XMLHttpRequest = function () {
-      const xhr = new origXHR();
-      xhr.addEventListener('load', () => {
-        const body = xhr.responseText.substring(0, 200);
-        logTo('network', 'console-log',
-          `✅ XHR ${xhr.responseURL} [${xhr.status}]<pre>${body}${xhr.responseText.length > 200 ? '…' : ''}</pre>`);
-      });
-      return xhr;
-    };
-
-    // --- [3] Performance Watcher ---
-    let lastFrame = performance.now();
-    function perfLoop() {
-      const now = performance.now();
-      const delta = now - lastFrame;
-      if (delta > 100) {
-        logTo('info', 'console-warn', `⚠️ Long frame: ${delta.toFixed(1)}ms`);
-      }
-      lastFrame = now;
-      requestAnimationFrame(perfLoop);
-    }
-    perfLoop();
-
-    // --- [4] Element Picker ---
-    document.addEventListener('click', e => {
-      if (!e.target.closest('#mobile-console')) {
-        document.querySelectorAll('.highlight-picked').forEach(el =>
-          el.classList.remove('highlight-picked'));
-        const el = e.target;
-        el.classList.add('highlight-picked');
-        logTo('dom', 'console-log', `<pre>${el.outerHTML.split('\n')[0]}…</pre>`);
-      }
-    }, true);
-
-    // --- [5] DOM Inspector using <details> tree ---
-    function buildDomTree(el) {
-      const d = document.createElement('details');
-      const s = document.createElement('summary');
-      const id = el.id ? `#${el.id}` : '';
-      const cls = el.className ? '.' + el.className.split(' ').join('.') : '';
-      s.textContent = `<${el.tagName.toLowerCase()}${id}${cls}>`;
-      d.appendChild(s);
-      Array.from(el.children).forEach(child => {
-        d.appendChild(buildDomTree(child));
-      });
-      return d;
-    }
-    const domPanel = document.getElementById('panel-dom');
-    domPanel.innerHTML = '';
-    domPanel.appendChild(buildDomTree(document.body));
-
-        console.log('✅ Mobile Console Loaded');
-      }
-    })();
 
     function logTo(panel, type, content) {
       const el = document.createElement('div');
@@ -515,6 +371,7 @@ if (indexedDB.databases) {
       }
     }
   }, 1000); // Check every second
-
-  console.log('✅ Mobile Console Loaded');
+})();
+    console.log('✅ Mobile Console Loaded');
+  }
 })();
