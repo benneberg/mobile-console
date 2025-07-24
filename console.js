@@ -49,7 +49,19 @@
   };
   document.head.appendChild(css);
 
-  document.addEventListener('DOMContentLoaded', () => {
+  // Ensure setup runs even if DOMContentLoaded already fired
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupConsole);
+  } else {
+    setupConsole();
+  }
+
+  function setupConsole() {
+// Prevent Duplicate Panels
+if (document.getElementById('mobile-console')) {
+  console.warn('🚫 Console already injected.');
+  return;
+}
     document.body.insertAdjacentHTML('beforeend', `
       <div id="console-toggle">☰</div>
       <div id="mobile-console">
@@ -60,10 +72,18 @@
           <button data-tab="info">System</button>
           <button data-tab="dom">DOM</button>
           <button data-tab="repl">REPL</button>
+          <button id="toggle-theme">🌙</button>
         </div>
         <div id="panel-console" class="console-panel"></div>
         <div id="panel-network" class="console-panel hidden"></div>
-        <div id="panel-storage" class="console-panel hidden"></div>
+        <div id="panel-storage" class="console-panel hidden"><div style="margin-top: 0.5em;">
+  <input id="idb-filter" placeholder="🔍 filter keys or values…" style="width: 100%;" />
+</div>
+<div style="margin-top: 0.5em;">
+  <button id="idb-add">➕ Add Key</button>
+  <button id="idb-del">🗑️ Delete Key</button>
+</div>
+</div>
         <div id="panel-info" class="console-panel hidden"></div>
         <div id="panel-dom" class="console-panel hidden"></div>
         <div id="panel-repl" class="console-panel hidden">
@@ -72,6 +92,25 @@
         </div>
       </div>
     `);
+// Helper for REPL use 
+window.consoleDumpStore = function (dbName, storeName) {
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const all = store.getAll();
+    all.onsuccess = () => {
+      const json = JSON.stringify(all.result, null, 2);
+      logTo('storage', 'console-log', `<strong>Contents of ${storeName}:</strong><pre>${json}</pre>`);
+    };
+    tx.oncomplete = () => db.close();
+  };
+  req.onerror = () => {
+    logTo('storage', 'console-error', `❌ Failed to open DB: ${dbName}`);
+  };
+};
+
 
     const panels = {
       console: document.getElementById('panel-console'),
@@ -81,9 +120,10 @@
       dom: document.getElementById('panel-dom'),
       repl: document.getElementById('panel-repl'),
     };
+
     const toggleBtn = document.getElementById('console-toggle');
     const consoleContainer = document.getElementById('mobile-console');
-    const tabs = document.querySelectorAll('#console-tabs button');
+    const tabs = document.querySelectorAll('#console-tabs button[data-tab]');
 
     toggleBtn.addEventListener('click', () => {
       consoleContainer.style.display = consoleContainer.style.display === 'flex' ? 'none' : 'flex';
@@ -94,8 +134,153 @@
       btn.classList.add('active');
       Object.values(panels).forEach(p => p.classList.add('hidden'));
       panels[btn.dataset.tab].classList.remove('hidden');
+      if (btn.dataset.tab === 'storage') {
+    loadIndexedDBExplorer();
+  }
     }));
 
+    document.getElementById('toggle-theme').addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+    });
+// Filter / Add / Delete / Sort to IndexedDB Viewer
+document.getElementById('idb-filter').addEventListener('input', () => {
+  const filter = document.getElementById('idb-filter').value.toLowerCase();
+  const pre = resultBox.querySelector('pre');
+  if (!pre) return;
+  const original = JSON.parse(pre.textContent || '[]');
+  const filtered = original.filter(entry =>
+    JSON.stringify(entry).toLowerCase().includes(filter)
+  );
+  resultBox.innerHTML = `<pre>${JSON.stringify(filtered, null, 2)}</pre>`;
+});
+
+    document.getElementById('idb-add').addEventListener('click', () => {
+  const dbName = dbSelect.value;
+  const storeName = storeSelect.value;
+  if (!dbName || !storeName) return;
+  const key = prompt('Enter key (leave blank for auto):');
+  const value = prompt('Enter JSON value:');
+  try {
+    const parsed = JSON.parse(value);
+    const req = indexedDB.open(dbName);
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      if (key) {
+        store.put(parsed, key);
+      } else {
+        store.add(parsed);
+      }
+      tx.oncomplete = () => {
+        db.close();
+        storeSelect.dispatchEvent(new Event('change')); // reload view
+      };
+    };
+  } catch (e) {
+    alert('❌ Invalid JSON');
+  }
+});
+
+    document.getElementById('idb-del').addEventListener('click', () => {
+  const dbName = dbSelect.value;
+  const storeName = storeSelect.value;
+  const key = prompt('Enter key to delete:');
+  if (!key) return;
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    store.delete(key);
+    tx.oncomplete = () => {
+      db.close();
+      storeSelect.dispatchEvent(new Event('change')); // reload
+    };
+  };
+});
+
+    all.onsuccess = () => {
+  const data = all.result.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+};
+
+     // --- [1] JS Error Catcher ---
+    window.onerror = (msg, url, line, col, err) =>
+      logTo('console', 'console-error', `<strong>JS Error:</strong> ${msg}<br><pre>${err?.stack}</pre>`);
+    window.onunhandledrejection = e =>
+      logTo('console', 'console-error', `<strong>Unhandled Promise:</strong> <pre>${e.reason?.stack || e.reason}</pre>`);
+
+    // --- [2] Enhanced Network Inspector ---
+    const origFetch = window.fetch?.bind(window);
+    if (origFetch) {
+      window.fetch = async (...args) => {
+        const [resource, config] = args;
+        logTo('network', 'console-log', `➡️ Fetch ${resource}`);
+        const res = await origFetch(...args);
+        const clone = res.clone();
+        let body = '';
+        try { body = await clone.text(); } catch {}
+        logTo('network', 'console-log',
+          `✅ ${res.url} [${res.status}]<pre>${body}</pre>`);
+        return res;
+      };
+    }
+    const origXHR = window.XMLHttpRequest;
+    window.XMLHttpRequest = function () {
+      const xhr = new origXHR();
+      xhr.addEventListener('load', () => {
+        const body = xhr.responseText.substring(0, 200);
+        logTo('network', 'console-log',
+          `✅ XHR ${xhr.responseURL} [${xhr.status}]<pre>${body}${xhr.responseText.length > 200 ? '…' : ''}</pre>`);
+      });
+      return xhr;
+    };
+
+    // --- [3] Performance Watcher ---
+    let lastFrame = performance.now();
+    function perfLoop() {
+      const now = performance.now();
+      const delta = now - lastFrame;
+      if (delta > 100) {
+        logTo('info', 'console-warn', `⚠️ Long frame: ${delta.toFixed(1)}ms`);
+      }
+      lastFrame = now;
+      requestAnimationFrame(perfLoop);
+    }
+    perfLoop();
+
+    // --- [4] Element Picker ---
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#mobile-console')) {
+        document.querySelectorAll('.highlight-picked').forEach(el =>
+          el.classList.remove('highlight-picked'));
+        const el = e.target;
+        el.classList.add('highlight-picked');
+        logTo('dom', 'console-log', `<pre>${el.outerHTML.split('\n')[0]}…</pre>`);
+      }
+    }, true);
+
+    // --- [5] DOM Inspector using <details> tree ---
+    function buildDomTree(el) {
+      const d = document.createElement('details');
+      const s = document.createElement('summary');
+      const id = el.id ? `#${el.id}` : '';
+      const cls = el.className ? '.' + el.className.split(' ').join('.') : '';
+      s.textContent = `<${el.tagName.toLowerCase()}${id}${cls}>`;
+      d.appendChild(s);
+      Array.from(el.children).forEach(child => {
+        d.appendChild(buildDomTree(child));
+      });
+      return d;
+    }
+    const domPanel = document.getElementById('panel-dom');
+    domPanel.innerHTML = '';
+    domPanel.appendChild(buildDomTree(document.body));
+
+    console.log('✅ Mobile Console Loaded');
+  }
+  
     function logTo(panel, type, content) {
       const el = document.createElement('div');
       el.className = type;
@@ -138,35 +323,165 @@
     };
 
     function refreshStorage() {
-      panels.storage.innerHTML = '';
+     panels.storage.innerHTML = `
+  <div style="margin-bottom: 0.5em;">
+    <label>📦 DB:
+      <select id="idb-dbs"><option>Loading…</option></select>
+    </label>
+    <label>📁 Store:
+      <select id="idb-stores" disabled><option>Select DB first</option></select>
+    </label>
+  </div>
+  <div id="idb-results"></div>
+`;
+
       ['localStorage', 'sessionStorage'].forEach(k => {
         const pre = JSON.stringify(Object.fromEntries(Object.entries(window[k])), null, 2);
         logTo('storage', 'console-log', `<strong>${k}:</strong><pre>${pre}</pre>`);
       });
-      if (window.indexedDB?.databases) {
-        window.indexedDB.databases().then(dbs =>
-          dbs.forEach(db => logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name}`))
-        );
-      }
+if (indexedDB.databases) {
+  indexedDB.databases().then(dbs => {
+    dbs.forEach(db => {
+      logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name || '(unnamed)'}`);
+
+      const req = indexedDB.open(db.name);
+      req.onsuccess = () => {
+        const dbInstance = req.result;
+        const stores = dbInstance.objectStoreNames;
+        for (let i = 0; i < stores.length; i++) {
+          logTo('storage', 'console-log', `&nbsp;&nbsp;↳ Store: ${stores[i]}`);
+        }
+        dbInstance.close();
+      };
+      req.onerror = () => {
+        logTo('storage', 'console-error', `❌ Error opening DB ${db.name}`);
+      };
+    });
+  });
+}
     }
     refreshStorage();
     window.addEventListener('storage', refreshStorage);
 
-    ['info'].forEach(_ => {
-      logTo('info', 'console-log', `<strong>Screen:</strong> ${screen.width}×${screen.height}`);
-      logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
-      logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
-    });
+    logTo('info', 'console-log', `<strong>Screen:</strong> ${screen.width}×${screen.height}`);
+    logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
+    logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
 
-    function buildTree(el, indent = 0) {
-      let out = ' '.repeat(indent) + `<${el.tagName.toLowerCase()}`;
-      if (el.id) out += ` id="${el.id}"`;
-      if (el.className) out += ` class="${el.className}"`;
-      out += '>';
-      logTo('dom', 'console-log', out);
-      el.childNodes.forEach(c => c.nodeType === 1 && buildTree(c, indent + 2));
+function buildTree(el) {
+  const container = document.createElement('div');
+  container.className = 'dom-tree';
+
+  function createNodeElement(el) {
+    const tag = el.tagName.toLowerCase();
+    const id = el.id ? ` id="${el.id}"` : '';
+    const cls = el.className ? ` class="${el.className}"` : '';
+    const children = [...el.children];
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dom-node';
+
+    const label = document.createElement('div');
+    label.className = 'dom-node-label';
+    label.innerHTML = `<span class="dom-arrow">${children.length ? '▶' : ''}</span> &lt;${tag}${id}${cls}&gt;`;
+
+    wrapper.appendChild(label);
+
+    if (children.length) {
+      const childContainer = document.createElement('div');
+      childContainer.className = 'dom-children';
+      childContainer.style.display = 'none';
+
+      children.forEach(child => {
+        const childNode = createNodeElement(child);
+        childContainer.appendChild(childNode);
+      });
+
+      wrapper.appendChild(childContainer);
+
+      label.addEventListener('click', () => {
+        const arrow = label.querySelector('.dom-arrow');
+        const isOpen = childContainer.style.display === 'block';
+        childContainer.style.display = isOpen ? 'none' : 'block';
+        arrow.textContent = isOpen ? '▶' : '▼';
+      });
     }
+
+    return wrapper;
+  }
+
+  const rootNode = createNodeElement(document.body);
+  container.appendChild(rootNode);
+  panels.dom.innerHTML = '';
+  panels.dom.appendChild(container);
+}
     buildTree(document.body);
+const dbSelect = document.getElementById('idb-dbs');
+const storeSelect = document.getElementById('idb-stores');
+const resultBox = document.getElementById('idb-results');
+
+async function loadIndexedDBExplorer() {
+  dbSelect.innerHTML = '';
+  const dbs = await indexedDB.databases();
+  if (!dbs.length) {
+    dbSelect.innerHTML = '<option>No IndexedDB found</option>';
+    dbSelect.disabled = true;
+    return;
+  }
+
+  dbs.forEach(db => {
+    const opt = document.createElement('option');
+    opt.value = db.name;
+    opt.textContent = db.name || '(unnamed)';
+    dbSelect.appendChild(opt);
+  });
+
+  dbSelect.disabled = false;
+  storeSelect.disabled = true;
+  storeSelect.innerHTML = '<option>Select DB first</option>';
+}
+
+dbSelect.addEventListener('change', () => {
+  const dbName = dbSelect.value;
+  if (!dbName) return;
+
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    storeSelect.innerHTML = '';
+    for (const storeName of db.objectStoreNames) {
+      const opt = document.createElement('option');
+      opt.value = storeName;
+      opt.textContent = storeName;
+      storeSelect.appendChild(opt);
+    }
+    storeSelect.disabled = false;
+    db.close();
+  };
+});
+
+storeSelect.addEventListener('change', () => {
+  const dbName = dbSelect.value;
+  const storeName = storeSelect.value;
+  if (!dbName || !storeName) return;
+
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const all = store.getAll();
+    all.onsuccess = () => {
+      const json = JSON.stringify(all.result, null, 2);
+      resultBox.innerHTML = `<pre>${json}</pre>`;
+    };
+    tx.oncomplete = () => db.close();
+  };
+});
+
+// Load DBs on startup
+if (indexedDB.databases) {
+  loadIndexedDBExplorer();
+}
 
     const replInput = document.getElementById('repl-input');
     replInput.addEventListener('keydown', e => {
@@ -182,7 +497,26 @@
         replInput.value = '';
       }
     });
+// --- Auto-reinject on DOM or URL change ---
+(function monitorConsole() {
+  let lastUrl = location.href;
 
-    console.log('Console ✅ loaded');
-  });
+  setInterval(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      console.log('🔄 URL changed — re-injecting console');
+      if (!document.getElementById('mobile-console')) {
+        setupConsole(); // re-run setup if UI is gone
+      }
+    } else {
+      // Check in case DOM was wiped (but URL unchanged)
+      if (!document.getElementById('console-toggle')) {
+        console.log('🔄 Console UI missing — re-injecting');
+        setupConsole();
+      }
+    }
+  }, 1000); // Check every second
+})();
+    console.log('✅ Mobile Console Loaded');
+  }
 })();
