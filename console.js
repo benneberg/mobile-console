@@ -518,5 +518,4 @@ if (indexedDB.databases) {
   }, 1000); // Check every second
 })();
     console.log('✅ Mobile Console Loaded');
-  }
 })();
