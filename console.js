@@ -1,10 +1,52 @@
-// console.js
 (function () {
-  // Inject CSS with absolute root path:
+  const currentScript = document.currentScript || [...document.scripts].pop();
+  const baseUrl = currentScript.src.split('/').slice(0, -1).join('/');
+
+  // Load external CSS (fallback inline on error)
   const css = document.createElement('link');
   css.rel = 'stylesheet';
-  css.href = '/console.css';
-  css.onerror = () => console.warn('⚠️ console.css failed to load');
+  css.href = `${baseUrl}/console.css`;
+  css.onerror = () => {
+    console.warn('⚠️ console.css failed to load — using fallback CSS');
+    const style = document.createElement('style');
+    style.textContent = `
+      #console-toggle {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: black;
+        color: white;
+        padding: 10px;
+        font-size: 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        z-index: 10000;
+      }
+      #mobile-console {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        background: #1e1e1e;
+        color: white;
+        font-family: monospace;
+        display: none;
+        flex-direction: column;
+        z-index: 9999;
+      }
+      .console-panel.hidden { display: none; }
+      .console-panel { flex: 1; overflow: auto; padding: 10px; }
+      #console-tabs { display: flex; border-bottom: 1px solid #444; }
+      #console-tabs button { flex: 1; background: none; border: none; color: white; padding: 8px; cursor: pointer; }
+      #console-tabs .active { background: #333; }
+      #repl-input { width: 100%; padding: 8px; background: black; color: white; border: none; font-family: monospace; }
+      .light-mode #mobile-console { background: #eee; color: black; }
+      .light-mode #console-tabs button { color: black; }
+      .light-mode #repl-input { background: white; color: black; }
+    `;
+    document.head.appendChild(style);
+  };
   document.head.appendChild(css);
 
   document.addEventListener('DOMContentLoaded', () => {
