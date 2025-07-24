@@ -11,7 +11,7 @@ body {
   color: white;
   padding: 8px 12px;
   border-radius: 5px;
-  z-index: 1000;
+  z-index: 9999;
   cursor: pointer;
   font-size: 18px;
 }
