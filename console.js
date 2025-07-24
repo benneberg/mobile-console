@@ -193,7 +193,26 @@
         replInput.value = '';
       }
     });
+// --- Auto-reinject on DOM or URL change ---
+(function monitorConsole() {
+  let lastUrl = location.href;
 
+  setInterval(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      console.log('🔄 URL changed — re-injecting console');
+      if (!document.getElementById('mobile-console')) {
+        setupConsole(); // re-run setup if UI is gone
+      }
+    } else {
+      // Check in case DOM was wiped (but URL unchanged)
+      if (!document.getElementById('console-toggle')) {
+        console.log('🔄 Console UI missing — re-injecting');
+        setupConsole();
+      }
+    }
+  }, 1000); // Check every second
+})();
     console.log('✅ Mobile Console Loaded');
   }
 })();
