@@ -123,4 +123,9 @@ This tool is ideal for:
 In the REPL tab you can use:
 consoleDumpStore('myDatabase', 'myStore'); 
 
+In Storage tab you can:
+Pick a database from dropdown
+Pick an object store
+See JSON results directly below
+
 ---
