@@ -188,6 +188,22 @@ pre {
   margin: 0;
   font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
 }
+#panel-storage select {
+  margin-left: 0.5em;
+  font-size: 14px;
+}
+#idb-results {
+  margin-top: 0.5em;
+  font-family: monospace;
+  white-space: pre-wrap;
+  background: #111;
+  color: #0f0;
+  padding: 0.5em;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 .dom-tree {
   font-family: monospace;
   font-size: 14px;
