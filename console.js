@@ -1,26 +1,53 @@
-// console.js
 (function () {
   const currentScript = document.currentScript || [...document.scripts].pop();
   const baseUrl = currentScript.src.split('/').slice(0, -1).join('/');
 
+  // Inject CSS from external + fallback inline
   const css = document.createElement('link');
   css.rel = 'stylesheet';
-  css.href = `${baseUrl}/console.css`; 
-  css.onerror = () => console.warn('⚠️ console.css failed to load');
+  css.href = `${baseUrl}/console.css`;
+  css.onerror = () => {
+    console.warn('⚠️ console.css failed to load — using fallback CSS');
+    const style = document.createElement('style');
+    style.textContent = `
+      #console-toggle {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: black;
+        color: white;
+        padding: 10px;
+        font-size: 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        z-index: 10000;
+      }
+      #mobile-console {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        background: #1e1e1e;
+        color: white;
+        font-family: monospace;
+        display: none;
+        flex-direction: column;
+        z-index: 9999;
+      }
+      .console-panel.hidden { display: none; }
+      .console-panel { flex: 1; overflow: auto; padding: 10px; }
+      #console-tabs { display: flex; border-bottom: 1px solid #444; }
+      #console-tabs button { flex: 1; background: none; border: none; color: white; padding: 8px; cursor: pointer; }
+      #console-tabs .active { background: #333; }
+      #repl-input { width: 100%; padding: 8px; background: black; color: white; border: none; font-family: monospace; }
+      .light-mode #mobile-console { background: #eee; color: black; }
+      .light-mode #console-tabs button { color: black; }
+      .light-mode #repl-input { background: white; color: black; }
+    `;
+    document.head.appendChild(style);
+  };
   document.head.appendChild(css);
-
-const style = document.createElement('style');
-style.textContent = `
-  #console-toggle { position: fixed; top: 10px; right: 10px; background: black; color: white; padding: 10px; font-size: 20px; border-radius: 5px; cursor: pointer; z-index: 10000; }
-  #mobile-console { position: fixed; bottom: 0; left: 0; width: 100%; height: 40%; background: #1e1e1e; color: white; font-family: monospace; overflow-y: auto; display: flex; flex-direction: column; z-index: 9999; }
-  .console-panel.hidden { display: none; }
-  .console-panel { flex: 1; overflow: auto; padding: 10px; }
-  #console-tabs { display: flex; border-bottom: 1px solid #444; }
-  #console-tabs button { flex: 1; background: none; border: none; color: white; padding: 8px; cursor: pointer; }
-  #console-tabs .active { background: #333; }
-  #repl-input { width: 100%; padding: 8px; background: black; color: white; border: none; font-family: monospace; }
-`;
-document.head.appendChild(style);
 
   document.addEventListener('DOMContentLoaded', () => {
     document.body.insertAdjacentHTML('beforeend', `
@@ -33,6 +60,7 @@ document.head.appendChild(style);
           <button data-tab="info">System</button>
           <button data-tab="dom">DOM</button>
           <button data-tab="repl">REPL</button>
+          <button id="toggle-theme">🌙</button>
         </div>
         <div id="panel-console" class="console-panel"></div>
         <div id="panel-network" class="console-panel hidden"></div>
@@ -56,7 +84,7 @@ document.head.appendChild(style);
     };
     const toggleBtn = document.getElementById('console-toggle');
     const consoleContainer = document.getElementById('mobile-console');
-    const tabs = document.querySelectorAll('#console-tabs button');
+    const tabs = document.querySelectorAll('#console-tabs button[data-tab]');
 
     toggleBtn.addEventListener('click', () => {
       consoleContainer.style.display = consoleContainer.style.display === 'flex' ? 'none' : 'flex';
@@ -68,6 +96,11 @@ document.head.appendChild(style);
       Object.values(panels).forEach(p => p.classList.add('hidden'));
       panels[btn.dataset.tab].classList.remove('hidden');
     }));
+
+    // Theme toggle
+    document.getElementById('toggle-theme').addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+    });
 
     function logTo(panel, type, content) {
       const el = document.createElement('div');
@@ -125,11 +158,9 @@ document.head.appendChild(style);
     refreshStorage();
     window.addEventListener('storage', refreshStorage);
 
-    ['info'].forEach(_ => {
-      logTo('info', 'console-log', `<strong>Screen:</strong> ${screen.width}×${screen.height}`);
-      logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
-      logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
-    });
+    logTo('info', 'console-log', `<strong>Screen:</strong> ${screen.width}×${screen.height}`);
+    logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
+    logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
 
     function buildTree(el, indent = 0) {
       let out = ' '.repeat(indent) + `<${el.tagName.toLowerCase()}`;
@@ -156,6 +187,6 @@ document.head.appendChild(style);
       }
     });
 
-    console.log('Console ✅ loaded');
+    console.log('✅ Mobile Console Loaded');
   });
 })();
