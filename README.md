@@ -120,4 +120,7 @@ This tool is ideal for:
 - QA teams without desktop dev tools
 - Debugging production without modifying source
 
+In the REPL tab you can use:
+consoleDumpStore('myDatabase', 'myStore'); 
+
 ---
