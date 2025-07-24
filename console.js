@@ -5,7 +5,7 @@
 
   const css = document.createElement('link');
   css.rel = 'stylesheet';
-  css.href = 'https://benneberg.github.io/mobile-console/console.css';
+  css.href = `${baseUrl}/console.css`; 
   css.onerror = () => console.warn('⚠️ console.css failed to load');
   document.head.appendChild(css);
 
