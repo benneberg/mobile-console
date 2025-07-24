@@ -570,4 +570,6 @@ function sortAndRenderStoreData(storeData, title = '', renderTo = null) {
 }
 
   console.log('✅ Mobile Console Loaded');
+  console.log('📦 Panels loaded:', Object.keys(panels));
+
 })();
