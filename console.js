@@ -74,9 +74,9 @@
           <button data-tab="repl">REPL</button>
           <button id="toggle-theme">🌙</button>
         </div>
-        <div id="panel-console" class="console-panel"></div>
-        <div id="panel-network" class="console-panel hidden"></div>
-        <div id="panel-storage" class="console-panel hidden"><div style="margin-top: 0.5em;">
+        <div id="panel-console" class="console-panel" data-panel="console"></div>
+        <div id="panel-network" class="console-panel hidden" data-panel="network"></div>
+        <div id="panel-storage" class="console-panel hidden" data-panel="storage"><div style="margin-top: 0.5em;">
   <input id="idb-filter" placeholder="🔍 filter keys or values…" style="width: 100%;" />
 </div>
 <div style="margin-top: 0.5em;">
@@ -84,9 +84,9 @@
   <button id="idb-del">🗑️ Delete Key</button>
 </div>
 </div>
-        <div id="panel-info" class="console-panel hidden"></div>
-        <div id="panel-dom" class="console-panel hidden"></div>
-        <div id="panel-repl" class="console-panel hidden">
+        <div id="panel-info" class="console-panel hidden" data-panel="info"></div>
+        <div id="panel-dom" class="console-panel hidden" data-panel="dom"></div>
+        <div id="panel-repl" class="console-panel hidden" data-panel="repl">
           <div id="repl-output"></div>
           <input id="repl-input" placeholder="Type JS and press Enter"/>
         </div>
