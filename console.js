@@ -57,11 +57,11 @@
   }
 
   function setupConsole() {
-// Prevent Duplicate Panels
-if (document.getElementById('mobile-console')) {
-  console.warn('🚫 Console already injected.');
-  return;
-}
+    // Prevent Duplicate Panels
+    if (document.getElementById('mobile-console')) {
+      console.warn('🚫 Console already injected.');
+      return;
+    }
     document.body.insertAdjacentHTML('beforeend', `
       <div id="console-toggle">☰</div>
       <div id="mobile-console">
@@ -92,24 +92,24 @@ if (document.getElementById('mobile-console')) {
         </div>
       </div>
     `);
-// Helper for REPL use 
-window.consoleDumpStore = function (dbName, storeName) {
-  const req = indexedDB.open(dbName);
-  req.onsuccess = () => {
-    const db = req.result;
-    const tx = db.transaction(storeName, 'readonly');
-    const store = tx.objectStore(storeName);
-    const all = store.getAll();
-    all.onsuccess = () => {
-      const json = JSON.stringify(all.result, null, 2);
-      logTo('storage', 'console-log', `<strong>Contents of ${storeName}:</strong><pre>${json}</pre>`);
+    // Helper for REPL use 
+    window.consoleDumpStore = function (dbName, storeName) {
+      const req = indexedDB.open(dbName);
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const all = store.getAll();
+        all.onsuccess = () => {
+          const json = JSON.stringify(all.result, null, 2);
+          logTo('storage', 'console-log', `<strong>Contents of ${storeName}:</strong><pre>${json}</pre>`);
+        };
+        tx.oncomplete = () => db.close();
+      };
+      req.onerror = () => {
+        logTo('storage', 'console-error', `❌ Failed to open DB: ${dbName}`);
+      };
     };
-    tx.oncomplete = () => db.close();
-  };
-  req.onerror = () => {
-    logTo('storage', 'console-error', `❌ Failed to open DB: ${dbName}`);
-  };
-};
 
 
     const panels = {
@@ -135,77 +135,77 @@ window.consoleDumpStore = function (dbName, storeName) {
       Object.values(panels).forEach(p => p.classList.add('hidden'));
       panels[btn.dataset.tab].classList.remove('hidden');
       if (btn.dataset.tab === 'storage') {
-    loadIndexedDBExplorer();
-  }
+        loadIndexedDBExplorer();
+      }
     }));
 
     document.getElementById('toggle-theme').addEventListener('click', () => {
       document.body.classList.toggle('light-mode');
     });
-// Filter / Add / Delete / Sort to IndexedDB Viewer
-document.getElementById('idb-filter').addEventListener('input', () => {
-  const filter = document.getElementById('idb-filter').value.toLowerCase();
-  const pre = resultBox.querySelector('pre');
-  if (!pre) return;
-  const original = JSON.parse(pre.textContent || '[]');
-  const filtered = original.filter(entry =>
-    JSON.stringify(entry).toLowerCase().includes(filter)
-  );
-  resultBox.innerHTML = `<pre>${JSON.stringify(filtered, null, 2)}</pre>`;
-});
+    // Filter / Add / Delete / Sort to IndexedDB Viewer
+    document.getElementById('idb-filter').addEventListener('input', () => {
+      const filter = document.getElementById('idb-filter').value.toLowerCase();
+      const pre = resultBox.querySelector('pre');
+      if (!pre) return;
+      const original = JSON.parse(pre.textContent || '[]');
+      const filtered = original.filter(entry =>
+        JSON.stringify(entry).toLowerCase().includes(filter)
+      );
+      resultBox.innerHTML = `<pre>${JSON.stringify(filtered, null, 2)}</pre>`;
+    });
 
     document.getElementById('idb-add').addEventListener('click', () => {
-  const dbName = dbSelect.value;
-  const storeName = storeSelect.value;
-  if (!dbName || !storeName) return;
-  const key = prompt('Enter key (leave blank for auto):');
-  const value = prompt('Enter JSON value:');
-  try {
-    const parsed = JSON.parse(value);
-    const req = indexedDB.open(dbName);
-    req.onsuccess = () => {
-      const db = req.result;
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      if (key) {
-        store.put(parsed, key);
-      } else {
-        store.add(parsed);
+      const dbName = dbSelect.value;
+      const storeName = storeSelect.value;
+      if (!dbName || !storeName) return;
+      const key = prompt('Enter key (leave blank for auto):');
+      const value = prompt('Enter JSON value:');
+      try {
+        const parsed = JSON.parse(value);
+        const req = indexedDB.open(dbName);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          if (key) {
+            store.put(parsed, key);
+          } else {
+            store.add(parsed);
+          }
+          tx.oncomplete = () => {
+            db.close();
+            storeSelect.dispatchEvent(new Event('change')); // reload view
+          };
+        };
+      } catch (e) {
+        alert('❌ Invalid JSON');
       }
-      tx.oncomplete = () => {
-        db.close();
-        storeSelect.dispatchEvent(new Event('change')); // reload view
-      };
-    };
-  } catch (e) {
-    alert('❌ Invalid JSON');
-  }
-});
+    });
 
     document.getElementById('idb-del').addEventListener('click', () => {
-  const dbName = dbSelect.value;
-  const storeName = storeSelect.value;
-  const key = prompt('Enter key to delete:');
-  if (!key) return;
-  const req = indexedDB.open(dbName);
-  req.onsuccess = () => {
-    const db = req.result;
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    store.delete(key);
-    tx.oncomplete = () => {
-      db.close();
-      storeSelect.dispatchEvent(new Event('change')); // reload
-    };
-  };
-});
+      const dbName = dbSelect.value;
+      const storeName = storeSelect.value;
+      const key = prompt('Enter key to delete:');
+      if (!key) return;
+      const req = indexedDB.open(dbName);
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        store.delete(key);
+        tx.oncomplete = () => {
+          db.close();
+          storeSelect.dispatchEvent(new Event('change')); // reload
+        };
+      };
+    });
 
     all.onsuccess = () => {
-  const data = all.result.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-  resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-};
+      const data = all.result.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+      resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    };
 
-     // --- [1] JS Error Catcher ---
+    // --- [1] JS Error Catcher ---
     window.onerror = (msg, url, line, col, err) =>
       logTo('console', 'console-error', `<strong>JS Error:</strong> ${msg}<br><pre>${err?.stack}</pre>`);
     window.onunhandledrejection = e =>
@@ -220,7 +220,7 @@ document.getElementById('idb-filter').addEventListener('input', () => {
         const res = await origFetch(...args);
         const clone = res.clone();
         let body = '';
-        try { body = await clone.text(); } catch {}
+        try { body = await clone.text(); } catch { }
         logTo('network', 'console-log',
           `✅ ${res.url} [${res.status}]<pre>${body}</pre>`);
         return res;
@@ -280,50 +280,50 @@ document.getElementById('idb-filter').addEventListener('input', () => {
 
     console.log('✅ Mobile Console Loaded');
   }
-  
-    function logTo(panel, type, content) {
-      const el = document.createElement('div');
-      el.className = type;
-      el.innerHTML = content;
-      panels[panel].appendChild(el);
-      panels[panel].scrollTop = panels[panel].scrollHeight;
+
+  function logTo(panel, type, content) {
+    const el = document.createElement('div');
+    el.className = type;
+    el.innerHTML = content;
+    panels[panel].appendChild(el);
+    panels[panel].scrollTop = panels[panel].scrollHeight;
+  }
+
+  ['log', 'warn', 'error', 'info'].forEach(level => {
+    const orig = console[level];
+    console[level] = (...args) => {
+      const html = args.map(a =>
+        typeof a === 'object' ? `<pre>${JSON.stringify(a, null, 2)}</pre>` : a
+      ).join(' ');
+      logTo('console', `console-${level}`, html);
+      orig.apply(console, args);
+    };
+  });
+
+  const origFetch = window.fetch;
+  window.fetch = async (...args) => {
+    logTo('network', 'console-log', `➡️ Fetch ${args[0]}`);
+    try {
+      const res = await origFetch.apply(this, args);
+      logTo('network', 'console-log', `✅ ${res.url} [${res.status}]`);
+      return res;
+    } catch (e) {
+      logTo('network', 'console-error', `❌ fetch error: ${e}`);
+      throw e;
     }
+  };
 
-    ['log', 'warn', 'error', 'info'].forEach(level => {
-      const orig = console[level];
-      console[level] = (...args) => {
-        const html = args.map(a =>
-          typeof a === 'object' ? `<pre>${JSON.stringify(a, null, 2)}</pre>` : a
-        ).join(' ');
-        logTo('console', `console-${level}`, html);
-        orig.apply(console, args);
-      };
-    });
+  const origXHR = window.XMLHttpRequest;
+  window.XMLHttpRequest = function () {
+    const xhr = new origXHR();
+    xhr.addEventListener('loadstart', () => logTo('network', 'console-log', `➡️ XHR ${xhr.responseURL}`));
+    xhr.addEventListener('load', () => logTo('network', 'console-log', `✅ XHR ${xhr.responseURL} [${xhr.status}]`));
+    xhr.addEventListener('error', () => logTo('network', 'console-error', `❌ XHR error ${xhr.responseURL}`));
+    return xhr;
+  };
 
-    const origFetch = window.fetch;
-    window.fetch = async (...args) => {
-      logTo('network', 'console-log', `➡️ Fetch ${args[0]}`);
-      try {
-        const res = await origFetch.apply(this, args);
-        logTo('network', 'console-log', `✅ ${res.url} [${res.status}]`);
-        return res;
-      } catch (e) {
-        logTo('network', 'console-error', `❌ fetch error: ${e}`);
-        throw e;
-      }
-    };
-
-    const origXHR = window.XMLHttpRequest;
-    window.XMLHttpRequest = function () {
-      const xhr = new origXHR();
-      xhr.addEventListener('loadstart', () => logTo('network', 'console-log', `➡️ XHR ${xhr.responseURL}`));
-      xhr.addEventListener('load', () => logTo('network', 'console-log', `✅ XHR ${xhr.responseURL} [${xhr.status}]`));
-      xhr.addEventListener('error', () => logTo('network', 'console-error', `❌ XHR error ${xhr.responseURL}`));
-      return xhr;
-    };
-
-    function refreshStorage() {
-     panels.storage.innerHTML = `
+  function refreshStorage() {
+    panels.storage.innerHTML = `
   <div style="margin-bottom: 0.5em;">
     <label>📦 DB:
       <select id="idb-dbs"><option>Loading…</option></select>
@@ -335,188 +335,187 @@ document.getElementById('idb-filter').addEventListener('input', () => {
   <div id="idb-results"></div>
 `;
 
-      ['localStorage', 'sessionStorage'].forEach(k => {
-        const pre = JSON.stringify(Object.fromEntries(Object.entries(window[k])), null, 2);
-        logTo('storage', 'console-log', `<strong>${k}:</strong><pre>${pre}</pre>`);
+    ['localStorage', 'sessionStorage'].forEach(k => {
+      const pre = JSON.stringify(Object.fromEntries(Object.entries(window[k])), null, 2);
+      logTo('storage', 'console-log', `<strong>${k}:</strong><pre>${pre}</pre>`);
+    });
+    if (indexedDB.databases) {
+      indexedDB.databases().then(dbs => {
+        dbs.forEach(db => {
+          logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name || '(unnamed)'}`);
+
+          const req = indexedDB.open(db.name);
+          req.onsuccess = () => {
+            const dbInstance = req.result;
+            const stores = dbInstance.objectStoreNames;
+            for (let i = 0; i < stores.length; i++) {
+              logTo('storage', 'console-log', `&nbsp;&nbsp;↳ Store: ${stores[i]}`);
+            }
+            dbInstance.close();
+          };
+          req.onerror = () => {
+            logTo('storage', 'console-error', `❌ Error opening DB ${db.name}`);
+          };
+        });
       });
-if (indexedDB.databases) {
-  indexedDB.databases().then(dbs => {
+    }
+  }
+  refreshStorage();
+  window.addEventListener('storage', refreshStorage);
+
+  logTo('info', 'console-log', `<strong>Screen:</strong> ${screen.width}×${screen.height}`);
+  logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
+  logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
+
+  function buildTree(el) {
+    const container = document.createElement('div');
+    container.className = 'dom-tree';
+
+    function createNodeElement(el) {
+      const tag = el.tagName.toLowerCase();
+      const id = el.id ? ` id="${el.id}"` : '';
+      const cls = el.className ? ` class="${el.className}"` : '';
+      const children = [...el.children];
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'dom-node';
+
+      const label = document.createElement('div');
+      label.className = 'dom-node-label';
+      label.innerHTML = `<span class="dom-arrow">${children.length ? '▶' : ''}</span> &lt;${tag}${id}${cls}&gt;`;
+
+      wrapper.appendChild(label);
+
+      if (children.length) {
+        const childContainer = document.createElement('div');
+        childContainer.className = 'dom-children';
+        childContainer.style.display = 'none';
+
+        children.forEach(child => {
+          const childNode = createNodeElement(child);
+          childContainer.appendChild(childNode);
+        });
+
+        wrapper.appendChild(childContainer);
+
+        label.addEventListener('click', () => {
+          const arrow = label.querySelector('.dom-arrow');
+          const isOpen = childContainer.style.display === 'block';
+          childContainer.style.display = isOpen ? 'none' : 'block';
+          arrow.textContent = isOpen ? '▶' : '▼';
+        });
+      }
+
+      return wrapper;
+    }
+
+    const rootNode = createNodeElement(document.body);
+    container.appendChild(rootNode);
+    panels.dom.innerHTML = '';
+    panels.dom.appendChild(container);
+  }
+  buildTree(document.body);
+  const dbSelect = document.getElementById('idb-dbs');
+  const storeSelect = document.getElementById('idb-stores');
+  const resultBox = document.getElementById('idb-results');
+
+  async function loadIndexedDBExplorer() {
+    dbSelect.innerHTML = '';
+    const dbs = await indexedDB.databases();
+    if (!dbs.length) {
+      dbSelect.innerHTML = '<option>No IndexedDB found</option>';
+      dbSelect.disabled = true;
+      return;
+    }
+
     dbs.forEach(db => {
-      logTo('storage', 'console-log', `<strong>IndexedDB:</strong> ${db.name || '(unnamed)'}`);
-
-      const req = indexedDB.open(db.name);
-      req.onsuccess = () => {
-        const dbInstance = req.result;
-        const stores = dbInstance.objectStoreNames;
-        for (let i = 0; i < stores.length; i++) {
-          logTo('storage', 'console-log', `&nbsp;&nbsp;↳ Store: ${stores[i]}`);
-        }
-        dbInstance.close();
-      };
-      req.onerror = () => {
-        logTo('storage', 'console-error', `❌ Error opening DB ${db.name}`);
-      };
-    });
-  });
-}
-    }
-    refreshStorage();
-    window.addEventListener('storage', refreshStorage);
-
-    logTo('info', 'console-log', `<strong>Screen:</strong> ${screen.width}×${screen.height}`);
-    logTo('info', 'console-log', `<strong>UserAgent:</strong> ${navigator.userAgent}`);
-    logTo('info', 'console-log', `<strong>Platform:</strong> ${navigator.platform}`);
-
-function buildTree(el) {
-  const container = document.createElement('div');
-  container.className = 'dom-tree';
-
-  function createNodeElement(el) {
-    const tag = el.tagName.toLowerCase();
-    const id = el.id ? ` id="${el.id}"` : '';
-    const cls = el.className ? ` class="${el.className}"` : '';
-    const children = [...el.children];
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'dom-node';
-
-    const label = document.createElement('div');
-    label.className = 'dom-node-label';
-    label.innerHTML = `<span class="dom-arrow">${children.length ? '▶' : ''}</span> &lt;${tag}${id}${cls}&gt;`;
-
-    wrapper.appendChild(label);
-
-    if (children.length) {
-      const childContainer = document.createElement('div');
-      childContainer.className = 'dom-children';
-      childContainer.style.display = 'none';
-
-      children.forEach(child => {
-        const childNode = createNodeElement(child);
-        childContainer.appendChild(childNode);
-      });
-
-      wrapper.appendChild(childContainer);
-
-      label.addEventListener('click', () => {
-        const arrow = label.querySelector('.dom-arrow');
-        const isOpen = childContainer.style.display === 'block';
-        childContainer.style.display = isOpen ? 'none' : 'block';
-        arrow.textContent = isOpen ? '▶' : '▼';
-      });
-    }
-
-    return wrapper;
-  }
-
-  const rootNode = createNodeElement(document.body);
-  container.appendChild(rootNode);
-  panels.dom.innerHTML = '';
-  panels.dom.appendChild(container);
-}
-    buildTree(document.body);
-const dbSelect = document.getElementById('idb-dbs');
-const storeSelect = document.getElementById('idb-stores');
-const resultBox = document.getElementById('idb-results');
-
-async function loadIndexedDBExplorer() {
-  dbSelect.innerHTML = '';
-  const dbs = await indexedDB.databases();
-  if (!dbs.length) {
-    dbSelect.innerHTML = '<option>No IndexedDB found</option>';
-    dbSelect.disabled = true;
-    return;
-  }
-
-  dbs.forEach(db => {
-    const opt = document.createElement('option');
-    opt.value = db.name;
-    opt.textContent = db.name || '(unnamed)';
-    dbSelect.appendChild(opt);
-  });
-
-  dbSelect.disabled = false;
-  storeSelect.disabled = true;
-  storeSelect.innerHTML = '<option>Select DB first</option>';
-}
-
-dbSelect.addEventListener('change', () => {
-  const dbName = dbSelect.value;
-  if (!dbName) return;
-
-  const req = indexedDB.open(dbName);
-  req.onsuccess = () => {
-    const db = req.result;
-    storeSelect.innerHTML = '';
-    for (const storeName of db.objectStoreNames) {
       const opt = document.createElement('option');
-      opt.value = storeName;
-      opt.textContent = storeName;
-      storeSelect.appendChild(opt);
-    }
-    storeSelect.disabled = false;
-    db.close();
-  };
-});
-
-storeSelect.addEventListener('change', () => {
-  const dbName = dbSelect.value;
-  const storeName = storeSelect.value;
-  if (!dbName || !storeName) return;
-
-  const req = indexedDB.open(dbName);
-  req.onsuccess = () => {
-    const db = req.result;
-    const tx = db.transaction(storeName, 'readonly');
-    const store = tx.objectStore(storeName);
-    const all = store.getAll();
-    all.onsuccess = () => {
-      const json = JSON.stringify(all.result, null, 2);
-      resultBox.innerHTML = `<pre>${json}</pre>`;
-    };
-    tx.oncomplete = () => db.close();
-  };
-});
-
-// Load DBs on startup
-if (indexedDB.databases) {
-  loadIndexedDBExplorer();
-}
-
-    const replInput = document.getElementById('repl-input');
-    replInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        const code = replInput.value.trim();
-        if (!code) return;
-        try {
-          const result = eval(code);
-          logTo('repl', 'console-log', `<span>> ${code}</span><pre>${JSON.stringify(result, null, 2)}</pre>`);
-        } catch (err) {
-          logTo('repl', 'console-error', `<span>> ${code}</span><pre>${err}</pre>`);
-        }
-        replInput.value = '';
-      }
+      opt.value = db.name;
+      opt.textContent = db.name || '(unnamed)';
+      dbSelect.appendChild(opt);
     });
-// --- Auto-reinject on DOM or URL change ---
-(function monitorConsole() {
-  let lastUrl = location.href;
 
-  setInterval(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      console.log('🔄 URL changed — re-injecting console');
-      if (!document.getElementById('mobile-console')) {
-        setupConsole(); // re-run setup if UI is gone
-      }
-    } else {
-      // Check in case DOM was wiped (but URL unchanged)
-      if (!document.getElementById('console-toggle')) {
-        console.log('🔄 Console UI missing — re-injecting');
-        setupConsole();
-      }
-    }
-  }, 1000); // Check every second
-})();
-    console.log('✅ Mobile Console Loaded');
+    dbSelect.disabled = false;
+    storeSelect.disabled = true;
+    storeSelect.innerHTML = '<option>Select DB first</option>';
   }
+
+  dbSelect.addEventListener('change', () => {
+    const dbName = dbSelect.value;
+    if (!dbName) return;
+
+    const req = indexedDB.open(dbName);
+    req.onsuccess = () => {
+      const db = req.result;
+      storeSelect.innerHTML = '';
+      for (const storeName of db.objectStoreNames) {
+        const opt = document.createElement('option');
+        opt.value = storeName;
+        opt.textContent = storeName;
+        storeSelect.appendChild(opt);
+      }
+      storeSelect.disabled = false;
+      db.close();
+    };
+  });
+
+  storeSelect.addEventListener('change', () => {
+    const dbName = dbSelect.value;
+    const storeName = storeSelect.value;
+    if (!dbName || !storeName) return;
+
+    const req = indexedDB.open(dbName);
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const all = store.getAll();
+      all.onsuccess = () => {
+        const json = JSON.stringify(all.result, null, 2);
+        resultBox.innerHTML = `<pre>${json}</pre>`;
+      };
+      tx.oncomplete = () => db.close();
+    };
+  });
+
+  // Load DBs on startup
+  if (indexedDB.databases) {
+    loadIndexedDBExplorer();
+  }
+
+  const replInput = document.getElementById('repl-input');
+  replInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const code = replInput.value.trim();
+      if (!code) return;
+      try {
+        const result = eval(code);
+        logTo('repl', 'console-log', `<span>> ${code}</span><pre>${JSON.stringify(result, null, 2)}</pre>`);
+      } catch (err) {
+        logTo('repl', 'console-error', `<span>> ${code}</span><pre>${err}</pre>`);
+      }
+      replInput.value = '';
+    }
+  });
+  // --- Auto-reinject on DOM or URL change ---
+  (function monitorConsole() {
+    let lastUrl = location.href;
+
+    setInterval(() => {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        console.log('🔄 URL changed — re-injecting console');
+        if (!document.getElementById('mobile-console')) {
+          setupConsole(); // re-run setup if UI is gone
+        }
+      } else {
+        // Check in case DOM was wiped (but URL unchanged)
+        if (!document.getElementById('console-toggle')) {
+          console.log('🔄 Console UI missing — re-injecting');
+          setupConsole();
+        }
+      }
+    }, 1000); // Check every second
+  })();
+  console.log('✅ Mobile Console Loaded');
 })();
