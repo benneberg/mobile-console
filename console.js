@@ -113,14 +113,6 @@ logTo('storage', 'console-log', html);
     };
 
 
-    const panels = {
-      console: document.getElementById('panel-console'),
-      network: document.getElementById('panel-network'),
-      storage: document.getElementById('panel-storage'),
-      info: document.getElementById('panel-info'),
-      dom: document.getElementById('panel-dom'),
-      repl: document.getElementById('panel-repl'),
-    };
 
     const toggleBtn = document.getElementById('console-toggle');
     const consoleContainer = document.getElementById('mobile-console');
@@ -340,6 +332,14 @@ document.getElementById('idb-del').addEventListener('click', () => {
     xhr.addEventListener('error', () => logTo('network', 'console-error', `❌ XHR error ${xhr.responseURL}`));
     return xhr;
   };
+    const panels = {
+      console: document.getElementById('panel-console'),
+      network: document.getElementById('panel-network'),
+      storage: document.getElementById('panel-storage'),
+      info: document.getElementById('panel-info'),
+      dom: document.getElementById('panel-dom'),
+      repl: document.getElementById('panel-repl'),
+    };
 
   function refreshStorage() {
     panels.storage.innerHTML = `
