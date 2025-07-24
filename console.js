@@ -101,8 +101,9 @@
         const store = tx.objectStore(storeName);
         const all = store.getAll();
         all.onsuccess = () => {
-          const json = JSON.stringify(all.result, null, 2);
-          logTo('storage', 'console-log', `<strong>Contents of ${storeName}:</strong><pre>${json}</pre>`);
+         const html = sortAndRenderStoreData(all.result, `Contents of ${storeName}`);
+logTo('storage', 'console-log', html);
+
         };
         tx.oncomplete = () => db.close();
       };
@@ -201,9 +202,9 @@
     });
 
     all.onsuccess = () => {
-      const data = all.result.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-      resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-    };
+  resultBox.innerHTML = sortAndRenderStoreData(all.result, `Contents of ${storeName}`, resultBox);
+};
+
 
     // --- [1] JS Error Catcher ---
     window.onerror = (msg, url, line, col, err) =>
@@ -470,10 +471,10 @@
       const tx = db.transaction(storeName, 'readonly');
       const store = tx.objectStore(storeName);
       const all = store.getAll();
-      all.onsuccess = () => {
-        const json = JSON.stringify(all.result, null, 2);
-        resultBox.innerHTML = `<pre>${json}</pre>`;
-      };
+     all.onsuccess = () => {
+  resultBox.innerHTML = sortAndRenderStoreData(all.result, `Contents of ${storeName}`, resultBox);
+};
+
       tx.oncomplete = () => db.close();
     };
   });
@@ -517,5 +518,26 @@
       }
     }, 1000); // Check every second
   })();
+  
+function sortAndRenderStoreData(storeData, title = '', renderTo = null) {
+  try {
+    const sorted = [...storeData].sort((a, b) => {
+      const ak = a.id ?? a.key ?? JSON.stringify(a);
+      const bk = b.id ?? b.key ?? JSON.stringify(b);
+      return String(ak).localeCompare(String(bk));
+    });
+
+    const html = `<strong>${title}</strong><pre>${JSON.stringify(sorted, null, 2)}</pre>`;
+
+    if (renderTo) {
+      renderTo.innerHTML = html;
+    }
+
+    return html;
+  } catch (err) {
+    return `<strong>Error sorting data</strong><pre>${err.message}</pre>`;
+  }
+}
+
   console.log('✅ Mobile Console Loaded');
 })();
