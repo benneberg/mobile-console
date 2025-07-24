@@ -190,7 +190,7 @@ logTo('storage', 'console-log', html);
 });
 
 
-   document.getElementById('idb-del').addEventListener('click', () => {
+document.getElementById('idb-del').addEventListener('click', () => {
   const dbName = dbSelect.value;
   const storeName = storeSelect.value;
   const key = prompt('Enter key to delete:');
@@ -206,16 +206,22 @@ logTo('storage', 'console-log', html);
     store.delete(key);
     tx.oncomplete = () => {
       db.close();
-      storeSelect.dispatchEvent(new Event('change'));
+
+      // ✅ Refresh the view after deletion
+      const refreshTx = db.transaction(storeName, 'readonly');
+      const refreshStore = refreshTx.objectStore(storeName);
+      const all = refreshStore.getAll();
+      all.onsuccess = () => {
+        resultBox.innerHTML = sortAndRenderStoreData(
+          all.result,
+          `Contents of ${storeName}`,
+          resultBox
+        );
+      };
     };
   };
   req.onerror = () => alert('❌ Failed to open database');
 });
-
-const all = store.getAll();
-all.onsuccess = () => {
-  resultBox.innerHTML = sortAndRenderStoreData(all.result, `Contents of ${storeName}`, resultBox);
-};
 
 
     // --- [1] JS Error Catcher ---
