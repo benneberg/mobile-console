@@ -188,6 +188,26 @@ pre {
   margin: 0;
   font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
 }
+.dom-tree {
+  font-family: monospace;
+  font-size: 14px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.dom-node-label {
+  cursor: pointer;
+  user-select: none;
+  padding-left: 5px;
+}
+
+.dom-arrow {
+  display: inline-block;
+  width: 1em;
+}
+.dom-children {
+  margin-left: 20px;
+}
 
 #repl-input {
   width: 100%;
