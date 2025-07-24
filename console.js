@@ -267,6 +267,73 @@ function buildTree(el) {
   panels.dom.appendChild(container);
 }
     buildTree(document.body);
+const dbSelect = document.getElementById('idb-dbs');
+const storeSelect = document.getElementById('idb-stores');
+const resultBox = document.getElementById('idb-results');
+
+async function loadIndexedDBExplorer() {
+  dbSelect.innerHTML = '';
+  const dbs = await indexedDB.databases();
+  if (!dbs.length) {
+    dbSelect.innerHTML = '<option>No IndexedDB found</option>';
+    dbSelect.disabled = true;
+    return;
+  }
+
+  dbs.forEach(db => {
+    const opt = document.createElement('option');
+    opt.value = db.name;
+    opt.textContent = db.name || '(unnamed)';
+    dbSelect.appendChild(opt);
+  });
+
+  dbSelect.disabled = false;
+  storeSelect.disabled = true;
+  storeSelect.innerHTML = '<option>Select DB first</option>';
+}
+
+dbSelect.addEventListener('change', () => {
+  const dbName = dbSelect.value;
+  if (!dbName) return;
+
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    storeSelect.innerHTML = '';
+    for (const storeName of db.objectStoreNames) {
+      const opt = document.createElement('option');
+      opt.value = storeName;
+      opt.textContent = storeName;
+      storeSelect.appendChild(opt);
+    }
+    storeSelect.disabled = false;
+    db.close();
+  };
+});
+
+storeSelect.addEventListener('change', () => {
+  const dbName = dbSelect.value;
+  const storeName = storeSelect.value;
+  if (!dbName || !storeName) return;
+
+  const req = indexedDB.open(dbName);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const all = store.getAll();
+    all.onsuccess = () => {
+      const json = JSON.stringify(all.result, null, 2);
+      resultBox.innerHTML = `<pre>${json}</pre>`;
+    };
+    tx.oncomplete = () => db.close();
+  };
+});
+
+// Load DBs on startup
+if (indexedDB.databases) {
+  loadIndexedDBExplorer();
+}
 
     const replInput = document.getElementById('repl-input');
     replInput.addEventListener('keydown', e => {
