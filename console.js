@@ -21,7 +21,6 @@
         border-radius: 5px;
         cursor: pointer;
         z-index: 10000;
-      }
       #mobile-console {
         position: fixed;
         bottom: 0;
@@ -34,7 +33,6 @@
         display: none;
         flex-direction: column;
         z-index: 9999;
-      }
       .console-panel.hidden { display: none; }
       .console-panel { flex: 1; overflow: auto; padding: 10px; }
       #console-tabs { display: flex; border-bottom: 1px solid #444; }
@@ -278,9 +276,10 @@ document.getElementById('idb-filter').addEventListener('input', () => {
     domPanel.innerHTML = '';
     domPanel.appendChild(buildDomTree(document.body));
 
-    console.log('✅ Mobile Console Loaded');
-  }
-  
+        console.log('✅ Mobile Console Loaded');
+      }
+    })();
+
     function logTo(panel, type, content) {
       const el = document.createElement('div');
       el.className = type;
@@ -516,6 +515,6 @@ if (indexedDB.databases) {
       }
     }
   }, 1000); // Check every second
-})();
-    console.log('✅ Mobile Console Loaded');
+
+  console.log('✅ Mobile Console Loaded');
 })();
